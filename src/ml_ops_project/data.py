@@ -1,29 +1,102 @@
 from pathlib import Path
+import json
 
 import typer
 from torch.utils.data import Dataset
+from datasets import load_dataset
+from PIL import Image
 
 
 class MyDataset(Dataset):
-    """My custom dataset."""
+    """LaTeX OCR Dataset for image-to-text tasks."""
 
-    def __init__(self, data_path: Path) -> None:
+    def __init__(self, data_path: Path = Path("data/raw/small_train")) -> None:
+        """Initialize the dataset by loading from local files.
+
+        Args:
+            data_path: Path to the dataset folder containing images/ and labels.json
+        """
         self.data_path = data_path
+        self.images_path = data_path / "images"
+        self.labels_file = data_path / "labels.json"
+
+        # Load labels
+        if self.labels_file.exists():
+            with open(self.labels_file, "r", encoding="utf-8") as f:
+                self.labels = json.load(f)
+            print(f"Loaded {len(self.labels)} samples from {data_path}")
+        else:
+            self.labels = []
+            print(f"No data found at {data_path}. Run download_data first.")
 
     def __len__(self) -> int:
         """Return the length of the dataset."""
+        return len(self.labels)
 
     def __getitem__(self, index: int):
-        """Return a given sample from the dataset."""
+        """Return a given sample from the dataset.
 
-    def preprocess(self, output_folder: Path) -> None:
-        """Preprocess the raw data and save it to the output folder."""
+        Args:
+            index: Index of the sample to retrieve
 
-def preprocess(data_path: Path, output_folder: Path) -> None:
-    print("Preprocessing data...")
-    dataset = MyDataset(data_path)
-    dataset.preprocess(output_folder)
+        Returns:
+            Dictionary containing image and text
+        """
+        label_data = self.labels[index]
+        image_path = self.images_path / label_data["image_file"]
+        image = Image.open(image_path)
+
+        return {"image": image, "text": label_data["text"]}
+
+
+def download_data(
+    name: str = "default",
+    split: str = "train",
+    output_path: Path = Path("data/raw"),
+) -> None:
+    """Download the LaTeX OCR dataset from HuggingFace and save locally.
+
+    Args:
+        name: Dataset variant (small, full, synthetic_handwrite, human_handwrite, human_handwrite_print)
+        split: Dataset split (train, validation, test)
+        output_path: Base path to save the dataset
+    """
+    print(f"Downloading LaTeX_OCR dataset (name={name}, split={split})...")
+    dataset = load_dataset("linxy/LaTeX_OCR", name=name, split=split)
+
+    # Create output directories
+    dataset_folder = output_path / f"{name}_{split}"
+    images_folder = dataset_folder / "images"
+    images_folder.mkdir(parents=True, exist_ok=True)
+
+    # Save images and collect labels
+    labels = []
+    print(f"Saving {len(dataset)} samples to {dataset_folder}...")
+
+    for idx, item in enumerate(dataset):
+        # Save image
+        image_filename = f"image_{idx:06d}.png"
+        image_path = images_folder / image_filename
+        item["image"].save(image_path)
+
+        # Store label info
+        labels.append({"image_file": image_filename, "text": item["text"]})
+
+        if (idx + 1) % 100 == 0:
+            print(f"Processed {idx + 1}/{len(dataset)} samples...")
+
+    # Save labels as JSON
+    labels_file = dataset_folder / "labels.json"
+    with open(labels_file, "w", encoding="utf-8") as f:
+        json.dump(labels, f, indent=2, ensure_ascii=False)
+
+    print(f"✓ Dataset saved to {dataset_folder}")
+    print(f"  - Images: {images_folder}")
+    print(f"  - Labels: {labels_file}")
+    print(f"  - Total samples: {len(labels)}")
+    print(f"Dataset ready with {len(dataset)} samples!")
+    print(f"Sample: {dataset[0]['text'][:50]}...")
 
 
 if __name__ == "__main__":
-    typer.run(preprocess)
+    typer.run(download_data)
