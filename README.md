@@ -23,7 +23,6 @@ train_dataset = load_dataset("linxy/LaTeX_OCR", name="small", split="train")
 ```
 
 > What models do you expect to use
-### Architecture Details
 The model consists of a hybrid **CNN-Transformer** network:
 1.  **Encoder:** A ResNet-18 (with the final two layers removed) serves as the visual feature extractor. The output feature map is projected to the model dimension and combined with 2D positional encodings.
 2.  **Decoder:** A multi-layer Transformer Decoder acting as a causal language model to predict LaTeX tokens.
