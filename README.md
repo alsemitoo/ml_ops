@@ -7,12 +7,15 @@ Machine Learning Operation Project
 **Image-to-LaTeX Translation of Mathematical Equations**
 
 > Overall goal of the project:
+
 The goal of this project is to develop a model that can translate images of mathematical equations into corresponding LaTeX representations, effectively converting handwritten or rendered equations into written LaTeX.
 
 > What framework are you going to use, and you do you intend to include the framework into your project?
+
 The project will be implemented using **PyTorch** as the primary deep learning framework. **torchvision** and **PIL** will be used for image preprocessing, transformations, and dataset handling. 
 
 > What data are you going to run on (initially, may change)
+
 The inital dataset is sourced from **Hugging Face** and is called **LaTeX_OCR**. The downloaded dataset has a total size of approzimately $1.49$ GB and contains $268,764$ samples. Each sample consists of two columns:
 - *image*: an image of a mathematical equation (with width specified in pixels)
 - *text*: a string containing the corresponding LaTeX representation of the equation.
@@ -23,7 +26,7 @@ train_dataset = load_dataset("linxy/LaTeX_OCR", name="small", split="train")
 ```
 
 > What models do you expect to use
-### Architecture Details
+
 The model consists of a hybrid **CNN-Transformer** network:
 1.  **Encoder:** A ResNet-18 (with the final two layers removed) serves as the visual feature extractor. The output feature map is projected to the model dimension and combined with 2D positional encodings.
 2.  **Decoder:** A multi-layer Transformer Decoder acting as a causal language model to predict LaTeX tokens.
