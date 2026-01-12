@@ -1,11 +1,12 @@
 from pathlib import Path
 import json
 
-import typer
+from hydra import main as hydra_main
 from loguru import logger
 from torch.utils.data import Dataset
 from datasets import load_dataset
 from PIL import Image
+from omegaconf import DictConfig
 
 
 class MyDataset(Dataset):
@@ -50,18 +51,15 @@ class MyDataset(Dataset):
         return {"image": image, "text": label_data["text"]}
 
 
-def download_data(
-    name: str = "default",
-    split: str = "train",
-    output_path: Path = Path("data/raw"),
-) -> None:
+def download_data(cfg: DictConfig) -> None:
     """Download the LaTeX OCR dataset from HuggingFace and save locally.
 
     Args:
-        name: Dataset variant (small, full, synthetic_handwrite, human_handwrite, human_handwrite_print)
-        split: Dataset split (train, validation, test)
-        output_path: Base path to save the dataset
+        cfg: Configuration object containing name, split, and output_path
     """
+    name = cfg.name
+    split = cfg.split
+    output_path = Path(cfg.output_path)
     logger.info(f"Downloading LaTeX_OCR dataset (name={name}, split={split})...")
     dataset = load_dataset("linxy/LaTeX_OCR", name=name, split=split)
 
@@ -99,5 +97,10 @@ def download_data(
     logger.info(f"Sample: {dataset[0]['text'][:50]}...")
 
 
+@hydra_main(config_path="../../configs", config_name="data", version_base=None)
+def main(cfg: DictConfig) -> None:
+    download_data(cfg)
+
+
 if __name__ == "__main__":
-    typer.run(download_data)
+    main()
