@@ -17,23 +17,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
         with:
-          python-version: ${{ matrix.python-version }}
-          cache: 'pip'
+          enable-cache: true
 
       - name: Install dependencies
         run: |
-          python -m pip install -U pip setuptools wheel
-          pip install -r requirements.txt
-          pip install -r requirements_dev.txt
-          pip list
-
-      - name: ruff check
+          uv sync --locked --dev
+          uv tree
+      - name: ruff linter
         run: |
-          ruff check .
-
-      - name: ruff format
+          uv run ruff check .
+      - name: ruff formatter
         run: |
-          ruff format .
+          uv run ruff format . --check
+      - name: mypy type checking
+        run: |
+          uv run mypy .
