@@ -1,10 +1,13 @@
 from ml_ops_project.model import Model
 from ml_ops_project.data import MyDataset
 
+
 def train():
     dataset = MyDataset("data/raw")
     model = Model()
+    model.train(dataset)
     # add rest of your training code here
+
 
 if __name__ == "__main__":
     train()
