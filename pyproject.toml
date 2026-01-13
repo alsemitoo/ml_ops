@@ -24,6 +24,7 @@ dependencies = [
     "loguru>=0.7.3",
     "pillow>=12.1.0",
     "torch==2.6.0",
+    "torchvision==0.21.0",
     "typer==0.15.1",
     "uvicorn==0.34.0",
 ]
@@ -63,3 +64,7 @@ omit = ["tests/*"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[[tool.mypy.overrides]]
+module = ["datasets", "datasets.*"]
+ignore_missing_imports = true
