@@ -1,6 +1,6 @@
 """Preprocessing transforms for LaTeX OCR images."""
 from PIL import Image
-from torchvision import transforms  # type: ignore
+from torchvision import transforms
 
 
 class FormulaResizePad:
