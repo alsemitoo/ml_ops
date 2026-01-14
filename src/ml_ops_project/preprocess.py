@@ -1,8 +1,6 @@
 """Preprocessing transforms for LaTeX OCR images."""
-import torch
-from torchvision import transforms
-import torchvision.transforms.functional as F
 from PIL import Image
+from torchvision import transforms
 
 
 class FormulaResizePad:
@@ -18,7 +16,7 @@ class FormulaResizePad:
         self.h = target_height
         self.w = max_width
 
-    def __call__(self, img):
+    def __call__(self, img: Image.Image) -> Image.Image:
         """Apply resize and padding to image.
 
         Args:
@@ -42,7 +40,7 @@ class FormulaResizePad:
             new_w = self.w
 
         # Resize
-        img = F.resize(img, (self.h, new_w))
+        img = img.resize((new_w, self.h), resample=Image.Resampling.BILINEAR)
 
         # 3. PADDING
         # Create white canvas
@@ -62,14 +60,16 @@ def get_train_transform(target_height=128, max_width=640):
     Returns:
         Compose transform with augmentation
     """
-    return transforms.Compose([
-        FormulaResizePad(target_height=target_height, max_width=max_width),
-        # Augmentation transforms
-        transforms.ColorJitter(brightness=0.2, contrast=0.2),
-        transforms.RandomAffine(degrees=2, translate=(0.02, 0.02), scale=(0.98, 1.02)),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
-    ])
+    return transforms.Compose(
+        [
+            FormulaResizePad(target_height=target_height, max_width=max_width),
+            # Augmentation transforms
+            transforms.ColorJitter(brightness=0.2, contrast=0.2),
+            transforms.RandomAffine(degrees=2, translate=(0.02, 0.02), scale=(0.98, 1.02)),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
+        ]
+    )
 
 
 def get_val_test_transform(target_height=128, max_width=640):
@@ -82,8 +82,10 @@ def get_val_test_transform(target_height=128, max_width=640):
     Returns:
         Compose transform without augmentation
     """
-    return transforms.Compose([
-        FormulaResizePad(target_height=target_height, max_width=max_width),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
-    ])
+    return transforms.Compose(
+        [
+            FormulaResizePad(target_height=target_height, max_width=max_width),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
+        ]
+    )

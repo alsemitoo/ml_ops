@@ -1,13 +1,13 @@
 """Data loading and dataset classes for LaTeX OCR."""
-from pathlib import Path
 import json
-from typing import Optional, Callable
+from pathlib import Path
+from typing import Callable
 
-import typer
-from torch.utils.data import Dataset
-from datasets import load_dataset
-from PIL import Image
 import torch
+import typer
+from datasets import load_dataset  # type: ignore
+from PIL import Image
+from torch.utils.data import Dataset
 
 from ml_ops_project.tokenizer import LaTeXTokenizer
 
@@ -19,7 +19,7 @@ class MyDataset(Dataset):
         self,
         data_path: Path,
         tokenizer: LaTeXTokenizer,
-        transform: Optional[Callable] = None,
+        transform: Callable | None = None,
     ) -> None:
         """Initialize the dataset by loading from local files.
 
@@ -59,18 +59,18 @@ class MyDataset(Dataset):
         item = self.labels[idx]
         img_name = item["image_file"]
         latex_text = item["text"]
-        
+
         image_path = self.images_path / img_name
         image = Image.open(image_path).convert("RGB")
-        
+
         # Apply preprocessing transform
         if self.transform:
             image = self.transform(image)
-        
+
         # Encode text to token indices
         token_indices = self.tokenizer.encode(latex_text, add_special_tokens=True)
         label_tensor = torch.tensor(token_indices, dtype=torch.long)
-        
+
         return image, label_tensor
 
 
