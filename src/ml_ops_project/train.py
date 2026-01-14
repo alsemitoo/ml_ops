@@ -130,7 +130,7 @@ def train(epochs: int = 10, batch_size: int = 32, data_path: str | Path = "data/
     loss_fn = nn.CrossEntropyLoss(ignore_index=pad_idx)
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
 
-    statistics = {"train_loss": [], "train_accuracy": [], "val_loss": [], "val_accuracy": []}
+    statistics: dict[str, list[float]] = {"train_loss": [], "train_accuracy": [], "val_loss": [], "val_accuracy": []}
 
     for epoch in range(epochs):
         # Training phase

@@ -5,13 +5,12 @@ by extracting all unique tokens separated by spaces.
 """
 import json
 from pathlib import Path
-from typing import Dict, List, Set
 
 
 class LaTeXTokenizer:
     """Tokenizer for LaTeX formulas that extracts tokens from space-separated strings."""
 
-    def __init__(self, vocab: Dict[str, int] = None):
+    def __init__(self, vocab: dict[str, int] | None = None):
         """Initialize the tokenizer.
 
         Args:
@@ -41,7 +40,7 @@ class LaTeXTokenizer:
             labels = json.load(f)
 
         # Extract all unique tokens
-        all_tokens: Set[str] = set()
+        all_tokens: set[str] = set()
         for item in labels:
             text = item.get("text", "")
             # Split on whitespace to get tokens
@@ -63,7 +62,7 @@ class LaTeXTokenizer:
         """Return the vocabulary size."""
         return len(self.vocab)
 
-    def encode(self, text: str, add_special_tokens: bool = True) -> List[int]:
+    def encode(self, text: str, add_special_tokens: bool = True) -> list[int]:
         """Encode a text string into token indices.
 
         Args:
@@ -71,7 +70,7 @@ class LaTeXTokenizer:
             add_special_tokens: Whether to add START and END tokens.
 
         Returns:
-            List of token indices.
+            list of token indices.
         """
         tokens = text.split()
         indices = []
@@ -87,11 +86,11 @@ class LaTeXTokenizer:
 
         return indices
 
-    def decode(self, indices: List[int], skip_special_tokens: bool = True) -> str:
+    def decode(self, indices: list[int], skip_special_tokens: bool = True) -> str:
         """Decode token indices back to text string.
 
         Args:
-            indices: List of token indices.
+            indices: list of token indices.
             skip_special_tokens: Whether to skip special tokens in output.
 
         Returns:

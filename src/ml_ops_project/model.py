@@ -90,7 +90,7 @@ class Im2LatexModel(nn.Module):
 
 
 if __name__ == "__main__":
-    model = Im2LatexModel()
+    model = Im2LatexModel(vocab_size=100)
     x = torch.rand(1, 3, 224, 224)
     tgt_text = torch.randint(0, 100, (1, 10))
     print(f"Output shape of model: {model(x, tgt_text).shape}")

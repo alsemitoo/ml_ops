@@ -1,8 +1,6 @@
 """Preprocessing transforms for LaTeX OCR images."""
-import torch
-import torchvision.transforms.functional as F
 from PIL import Image
-from torchvision import transforms
+from torchvision import transforms  # type: ignore
 
 
 class FormulaResizePad:
@@ -18,7 +16,7 @@ class FormulaResizePad:
         self.h = target_height
         self.w = max_width
 
-    def __call__(self, img):
+    def __call__(self, img: Image.Image) -> Image.Image:
         """Apply resize and padding to image.
 
         Args:
@@ -42,7 +40,7 @@ class FormulaResizePad:
             new_w = self.w
 
         # Resize
-        img = F.resize(img, (self.h, new_w))
+        img = img.resize((new_w, self.h), resample=Image.Resampling.BILINEAR)
 
         # 3. PADDING
         # Create white canvas

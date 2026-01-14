@@ -1,11 +1,11 @@
 """Data loading and dataset classes for LaTeX OCR."""
 import json
 from pathlib import Path
-from typing import Callable, Optional
+from typing import Callable
 
 import torch
 import typer
-from datasets import load_dataset
+from datasets import load_dataset  # type: ignore
 from PIL import Image
 from torch.utils.data import Dataset
 
@@ -19,7 +19,7 @@ class MyDataset(Dataset):
         self,
         data_path: Path,
         tokenizer: LaTeXTokenizer,
-        transform: Optional[Callable] = None,
+        transform: Callable | None = None,
     ) -> None:
         """Initialize the dataset by loading from local files.
 
