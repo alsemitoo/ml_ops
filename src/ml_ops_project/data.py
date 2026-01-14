@@ -1,10 +1,10 @@
-from pathlib import Path
 import json
+from pathlib import Path
 
 import typer
-from torch.utils.data import Dataset
 from datasets import load_dataset
 from PIL import Image
+from torch.utils.data import Dataset
 
 
 class MyDataset(Dataset):
