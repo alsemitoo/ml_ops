@@ -38,7 +38,7 @@ def collate_fn(batch):
     return images, labels
 
 
-def train(epochs: int = 10, batch_size: int = 32, data_path: str = "data/raw/default_train"):
+def train(epochs: int = 10, batch_size: int = 32, data_path: str | Path = "data/raw/default_train"):
     """Train the Image-to-LaTeX model.
 
     Args:
