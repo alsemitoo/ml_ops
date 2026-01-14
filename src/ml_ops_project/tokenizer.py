@@ -75,16 +75,16 @@ class LaTeXTokenizer:
         """
         tokens = text.split()
         indices = []
-        
+
         if add_special_tokens:
             indices.append(self.vocab.get(self.start_token, self.vocab[self.unk_token]))
-        
+
         for token in tokens:
             indices.append(self.vocab.get(token, self.vocab[self.unk_token]))
-        
+
         if add_special_tokens:
             indices.append(self.vocab.get(self.end_token, self.vocab[self.unk_token]))
-        
+
         return indices
 
     def decode(self, indices: List[int], skip_special_tokens: bool = True) -> str:

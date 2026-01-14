@@ -1,8 +1,8 @@
 """Preprocessing transforms for LaTeX OCR images."""
 import torch
-from torchvision import transforms
 import torchvision.transforms.functional as F
 from PIL import Image
+from torchvision import transforms
 
 
 class FormulaResizePad:
@@ -62,14 +62,16 @@ def get_train_transform(target_height=128, max_width=640):
     Returns:
         Compose transform with augmentation
     """
-    return transforms.Compose([
-        FormulaResizePad(target_height=target_height, max_width=max_width),
-        # Augmentation transforms
-        transforms.ColorJitter(brightness=0.2, contrast=0.2),
-        transforms.RandomAffine(degrees=2, translate=(0.02, 0.02), scale=(0.98, 1.02)),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
-    ])
+    return transforms.Compose(
+        [
+            FormulaResizePad(target_height=target_height, max_width=max_width),
+            # Augmentation transforms
+            transforms.ColorJitter(brightness=0.2, contrast=0.2),
+            transforms.RandomAffine(degrees=2, translate=(0.02, 0.02), scale=(0.98, 1.02)),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
+        ]
+    )
 
 
 def get_val_test_transform(target_height=128, max_width=640):
@@ -82,8 +84,10 @@ def get_val_test_transform(target_height=128, max_width=640):
     Returns:
         Compose transform without augmentation
     """
-    return transforms.Compose([
-        FormulaResizePad(target_height=target_height, max_width=max_width),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
-    ])
+    return transforms.Compose(
+        [
+            FormulaResizePad(target_height=target_height, max_width=max_width),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
+        ]
+    )
