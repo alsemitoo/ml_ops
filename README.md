@@ -8,17 +8,17 @@ Machine Learning Operation Project
 
 > Overall goal of the project:
 
-The goal of this project is to develop a model that can translate images of mathematical equations into corresponding LaTeX representations, effectively converting handwritten or rendered equations into written LaTeX.
+The primary goal of this project is to develop a machine learning model capable of translating images of mathematical equations into their corresponding LaTeX string representations. This system aims to effectively convert visual inputs, whether they are handwritten notes or digitally rendered equations, into valid, editable LaTeX code.
 
 > What framework are you going to use, and you do you intend to include the framework into your project?
 
-The project will be implemented using **PyTorch** as the primary deep learning framework. **torchvision** and **PIL** will be used for image preprocessing, transformations, and dataset handling. 
+The project will be implemented using **PyTorch** as the primary deep learning framework for defining the model architecture and managing the training loop. Additionally, the **torchvision** library and **PIL** (Python Imaging Library) will be integrated to handle image preprocessing tasks, perform necessary data transformations, and manage dataset operations to prepare inputs for the network.
 
 > What data are you going to run on (initially, may change)
 
-The inital dataset is sourced from **Hugging Face** and is called **LaTeX_OCR**. The downloaded dataset has a total size of approzimately $1.49$ GB and contains $268,764$ samples. Each sample consists of two columns:
-- *image*: an image of a mathematical equation (with width specified in pixels)
-- *text*: a string containing the corresponding LaTeX representation of the equation.
+The initial dataset is sourced from the **Hugging Face** repository under the name **LaTeX_OCR**. As indicated in the code snippet below, the project loads the "small" configuration of the training split. This downloaded dataset has a total size of approximately $1.49$ GB and contains $268,764$ unique samples. Each sample consists of two key columns:
+- *image*: An image file displaying a mathematical equation (with width specified in pixels).
+- *text*: A string containing the corresponding ground-truth LaTeX representation of the equation.
 
 ```
 from datasets import load_dataset
@@ -27,11 +27,11 @@ train_dataset = load_dataset("linxy/LaTeX_OCR", name="small", split="train")
 
 > What models do you expect to use
 
-The model consists of a hybrid **CNN-Transformer** network:
-1.  **Encoder:** A ResNet-18 (with the final two layers removed) serves as the visual feature extractor. The output feature map is projected to the model dimension and combined with 2D positional encodings.
-2.  **Decoder:** A multi-layer Transformer Decoder acting as a causal language model to predict LaTeX tokens.
+The model architecture employs a hybrid CNN-Transformer network designed to sequence visual features into text:
+1.  **Encoder:** A ResNet-18 serves as the visual feature extractor. The final two layers are removed, and the resulting output feature map is projected to the model dimension and combined with 2D positional encodings to preserve spatial information.
+2.  **Decoder:** A multi-layer Transformer Decoder acts as a causal language model to autoregressively predict the sequence of LaTeX tokens.
 
-*Note: This architecture is an adaptation of [DGurgurov/im2latex](https://huggingface.co/DGurgurov/im2latex), simplified by replacing the Swin Transformer and GPT-2 components with vanilla PyTorch implementations.*
+*Note: This architecture is a streamlined adaptation of [DGurgurov/im2latex](https://huggingface.co/DGurgurov/im2latex). It simplifies the reference model by replacing the original Swin Transformer and GPT-2 components with vanilla PyTorch implementations.*
 
 
 ## Overall project checklist
