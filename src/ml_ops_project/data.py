@@ -1,24 +1,38 @@
+"""Data loading and dataset classes for LaTeX OCR."""
 import json
 from pathlib import Path
+from typing import Optional, Callable
 
 import typer
 from datasets import load_dataset
 from PIL import Image
+import torch
+
+from ml_ops_project.tokenizer import LaTeXTokenizer
 from torch.utils.data import Dataset
 
 
 class MyDataset(Dataset):
     """LaTeX OCR Dataset for image-to-text tasks."""
 
-    def __init__(self, data_path: Path = Path("data/raw/small_train")) -> None:
+    def __init__(
+        self,
+        data_path: Path,
+        tokenizer: LaTeXTokenizer,
+        transform: Optional[Callable] = None,
+    ) -> None:
         """Initialize the dataset by loading from local files.
 
         Args:
             data_path: Path to the dataset folder containing images/ and labels.json
+            tokenizer: LaTeXTokenizer instance for encoding text
+            transform: Optional transform pipeline for image preprocessing
         """
-        self.data_path = data_path
-        self.images_path = data_path / "images"
-        self.labels_file = data_path / "labels.json"
+        self.data_path = Path(data_path)
+        self.images_path = self.data_path / "images"
+        self.labels_file = self.data_path / "labels.json"
+        self.tokenizer = tokenizer
+        self.transform = transform
 
         # Load labels
         if self.labels_file.exists():
@@ -33,20 +47,31 @@ class MyDataset(Dataset):
         """Return the length of the dataset."""
         return len(self.labels)
 
-    def __getitem__(self, index: int):
-        """Return a given sample from the dataset.
-
-        Args:
-            index: Index of the sample to retrieve
+    def __getitem__(self, idx):
+        """Get a single sample from the dataset.
 
         Returns:
-            Dictionary containing image and text
+            Tuple of (image_tensor, label_tensor) where:
+            - image_tensor: Preprocessed image tensor
+            - label_tensor: Token indices as a tensor
         """
-        label_data = self.labels[index]
-        image_path = self.images_path / label_data["image_file"]
-        image = Image.open(image_path)
-
-        return {"image": image, "text": label_data["text"]}
+        # Load image
+        item = self.labels[idx]
+        img_name = item["image_file"]
+        latex_text = item["text"]
+        
+        image_path = self.images_path / img_name
+        image = Image.open(image_path).convert("RGB")
+        
+        # Apply preprocessing transform
+        if self.transform:
+            image = self.transform(image)
+        
+        # Encode text to token indices
+        token_indices = self.tokenizer.encode(latex_text, add_special_tokens=True)
+        label_tensor = torch.tensor(token_indices, dtype=torch.long)
+        
+        return image, label_tensor
 
 
 def download_data(
