@@ -6,6 +6,8 @@ by extracting all unique tokens separated by spaces.
 import json
 from pathlib import Path
 
+from loguru import logger
+
 
 class LaTeXTokenizer:
     """Tokenizer for LaTeX formulas that extracts tokens from space-separated strings."""
@@ -34,8 +36,10 @@ class LaTeXTokenizer:
             labels_file: Path to labels.json file containing label data.
         """
         if not labels_file.exists():
+            logger.error(f"Labels file not found: {labels_file}")
             raise FileNotFoundError(f"Labels file not found: {labels_file}")
 
+        logger.info(f"Building vocabulary from {labels_file}")
         with open(labels_file, "r", encoding="utf-8") as f:
             labels = json.load(f)
 
@@ -55,7 +59,7 @@ class LaTeXTokenizer:
         self.vocab = {token: idx for idx, token in enumerate(vocab_list)}
         self.idx_to_token = {idx: token for token, idx in self.vocab.items()}
 
-        print(f"Built vocabulary with {len(self.vocab)} tokens")
+        logger.success(f"Built vocabulary with {len(self.vocab)} tokens from {len(labels)} labels")
 
     @property
     def vocab_size(self) -> int:
@@ -70,7 +74,7 @@ class LaTeXTokenizer:
             add_special_tokens: Whether to add START and END tokens.
 
         Returns:
-            list of token indices.
+            List of token indices.
         """
         tokens = text.split()
         indices = []
@@ -84,13 +88,14 @@ class LaTeXTokenizer:
         if add_special_tokens:
             indices.append(self.vocab.get(self.end_token, self.vocab[self.unk_token]))
 
+        logger.debug(f"Encoded text with {len(indices)} tokens (special_tokens={add_special_tokens})")
         return indices
 
     def decode(self, indices: list[int], skip_special_tokens: bool = True) -> str:
         """Decode token indices back to text string.
 
         Args:
-            indices: list of token indices.
+            indices: List of token indices.
             skip_special_tokens: Whether to skip special tokens in output.
 
         Returns:
@@ -102,12 +107,37 @@ class LaTeXTokenizer:
             if skip_special_tokens and token in [self.pad_token, self.start_token, self.end_token, self.unk_token]:
                 continue
             tokens.append(token)
+        
+        logger.debug(f"Decoded {len(indices)} indices to {len(tokens)} tokens (skip_special={skip_special_tokens})")
         return " ".join(tokens)
 
     def get_pad_idx(self) -> int:
-        """Get the padding token index."""
+        """Get the padding token index.
+
+        Returns:
+            Index of the padding token.
+        """
         return self.vocab.get(self.pad_token, 0)
 
     def get_unk_idx(self) -> int:
-        """Get the unknown token index."""
+        """Get the unknown token index.
+
+        Returns:
+            Index of the unknown token.
+        """
         return self.vocab.get(self.unk_token, 1)
+
+
+if __name__ == "__main__":
+    logger.info("Testing LaTeX tokenizer...")
+    
+    # Create a test tokenizer
+    tokenizer = LaTeXTokenizer()
+    logger.info(f"Created tokenizer with vocab size: {tokenizer.vocab_size}")
+    
+    # Test encode/decode
+    test_text = "\\frac{x}{y} + \\sqrt{z}"
+    encoded = tokenizer.encode(test_text)
+    logger.info(f"Encoded '{test_text}' to {len(encoded)} tokens")
+    
+    logger.success("Tokenizer test completed successfully")

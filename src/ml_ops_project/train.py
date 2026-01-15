@@ -1,7 +1,7 @@
 """Training script for Image-to-LaTeX model."""
-from pathlib import Path
 import cProfile
 import pstats
+from pathlib import Path
 
 import numpy as np
 import torch
