@@ -2,10 +2,12 @@
 from pathlib import Path
 import cProfile
 import pstats
+import os  # Added for cpu_count
 
 import numpy as np
 import torch
 import torch.nn as nn
+from torch.amp import GradScaler, autocast # NEW: Imports for Mixed Precision
 from hydra import main as hydra_main
 from loguru import logger
 from omegaconf import DictConfig
@@ -110,6 +112,7 @@ def prepare_datasets(
 
     return train_dataset, val_dataset, test_dataset
 
+
 def train_epoch(
     model: nn.Module,
     train_dataloader: DataLoader,
@@ -118,6 +121,7 @@ def train_epoch(
     vocab_size: int,
     pad_idx: int,
     epoch: int,
+    scaler: GradScaler,  # NEW: Pass scaler to the function
 ) -> tuple[list[float], list[float]]:
     """Train the model for one epoch.
 
@@ -145,13 +149,20 @@ def train_epoch(
         # For each sequence, we predict the next token given previous tokens
         tgt_input = labels[:, :-1]  # Remove last token for input
         tgt_output = labels[:, 1:]  # Remove first token for target
+
         optimizer.zero_grad()
-        y_pred = model(images, tgt_input)  # (Batch, Seq_Len-1, Vocab_Size)
-        
-        # Reshape for loss: (Batch * Seq_Len-1, Vocab_Size) and (Batch * Seq_Len-1,)
-        loss = loss_fn(y_pred.reshape(-1, vocab_size), tgt_output.reshape(-1))
-        loss.backward()
-        optimizer.step()
+
+        # NEW: Mixed Precision Context
+        # "cuda" context automatically handles float16 casting for faster math
+        with autocast(device_type="cuda" if torch.cuda.is_available() else "cpu"):
+            y_pred = model(images, tgt_input)
+            loss = loss_fn(y_pred.reshape(-1, vocab_size), tgt_output.reshape(-1))
+
+        # NEW: Scaler logic for backpropagation
+        scaler.scale(loss).backward()
+        scaler.step(optimizer)
+        scaler.update()
+
         epoch_train_loss.append(loss.item())
         
         # Calculate accuracy (excluding padding)
@@ -163,6 +174,9 @@ def train_epoch(
         
         if i % 100 == 0:
             logger.info(f"Epoch {epoch}, iter {i}, loss: {loss.item():.4f}, acc: {accuracy.item():.4f}")
+
+    return epoch_train_loss, epoch_train_acc
+
 
 def validate_epoch(
     model: nn.Module,
@@ -196,9 +210,10 @@ def validate_epoch(
             tgt_input = labels[:, :-1]
             tgt_output = labels[:, 1:]
             
-            y_pred = model(images, tgt_input)
-            
-            loss = loss_fn(y_pred.reshape(-1, vocab_size), tgt_output.reshape(-1))
+            # NEW: Inference is also faster with autocast
+            with autocast(device_type="cuda" if torch.cuda.is_available() else "cpu"):
+                y_pred = model(images, tgt_input)
+                loss = loss_fn(y_pred.reshape(-1, vocab_size), tgt_output.reshape(-1))
             
             epoch_val_loss.append(loss.item())
             
@@ -209,6 +224,8 @@ def validate_epoch(
             epoch_val_acc.append(accuracy.item())
             
     return epoch_val_loss, epoch_val_acc
+
+
 @hydra_main(config_path="../../configs", config_name="train", version_base=None)
 def train(cfg: DictConfig):
     """Train the Image-to-LaTeX model.
@@ -226,6 +243,10 @@ def train(cfg: DictConfig):
 
     train_cfg = cfg.training
     model_cfg = cfg.model
+
+    # 1. OPTIMIZATION: Check CPU count for workers
+    # Using 4 is a safe bet for most laptops, or use os.cpu_count()
+    num_workers = 4
 
     logger.info(
         f"Starting training with epochs={train_cfg.epochs}, batch_size={train_cfg.batch_size}, data_path={train_cfg.data_path}"
@@ -247,12 +268,26 @@ def train(cfg: DictConfig):
 
     train_dataset, val_dataset, test_dataset = prepare_datasets(data_path, tokenizer)
 
-    # Create data loaders
+    # 2. OPTIMIZATION: Optimized DataLoaders
+    # pin_memory=True speeds up CPU->GPU transfer
+    # num_workers=4 enables parallel preprocessing (CRITICAL FIX)
     train_dataloader = DataLoader(
-        train_dataset, batch_size=train_cfg.batch_size, shuffle=True, collate_fn=collate_fn, num_workers=0
+        train_dataset, 
+        batch_size=train_cfg.batch_size, 
+        shuffle=True, 
+        collate_fn=collate_fn, 
+        num_workers=num_workers,
+        pin_memory=True,
+        persistent_workers=True
     )
     val_dataloader = DataLoader(
-        val_dataset, batch_size=train_cfg.batch_size, shuffle=False, collate_fn=collate_fn, num_workers=0
+        val_dataset, 
+        batch_size=train_cfg.batch_size, 
+        shuffle=False, 
+        collate_fn=collate_fn, 
+        num_workers=num_workers,
+        pin_memory=True,
+        persistent_workers=True
     )
 
     # Initialize model
@@ -270,16 +305,19 @@ def train(cfg: DictConfig):
     loss_fn = nn.CrossEntropyLoss(ignore_index=pad_idx)
     optimizer = torch.optim.Adam(model.parameters(), lr=train_cfg.learning_rate)
 
+    # 3. OPTIMIZATION: Initialize GradScaler
+    scaler = GradScaler()
+
     statistics: dict[str, list[float]] = {"train_loss": [], "train_accuracy": [], "val_loss": [], "val_accuracy": []}
 
     for epoch in range(train_cfg.epochs):
         # Training phase
         epoch_train_loss, epoch_train_acc = train_epoch(
-            model, train_dataloader, loss_fn, optimizer, vocab_size, pad_idx, epoch
+            model, train_dataloader, loss_fn, optimizer, vocab_size, pad_idx, epoch, scaler
         )
 
         epoch_val_loss, epoch_val_acc = validate_epoch(
-            model, val_dataloader, loss_fn, vocab_size, pad_idx, epoch
+            model, val_dataloader, loss_fn, vocab_size, pad_idx
         )
 
 
