@@ -4,8 +4,9 @@ from pathlib import Path
 from typing import Callable
 
 import torch
-import typer
-from datasets import load_dataset  # type: ignore
+from datasets import load_dataset
+from hydra import main as hydra_main
+from omegaconf import DictConfig
 from PIL import Image
 from torch.utils.data import Dataset
 from loguru import logger
@@ -62,13 +63,13 @@ class MyDataset(Dataset):
         latex_text = item["text"]
 
         image_path = self.images_path / img_name
-        
+
         try:
             image = Image.open(image_path).convert("RGB")
         except FileNotFoundError:
             logger.error(f"Image file not found: {image_path}")
             raise
-        
+
         # Apply preprocessing transform
         if self.transform:
             image = self.transform(image)
@@ -80,11 +81,8 @@ class MyDataset(Dataset):
         return image, label_tensor
 
 
-def download_data(
-    name: str = "default",
-    split: str = "train",
-    output_path: Path = Path("data/raw"),
-) -> None:
+@hydra_main(config_path="../../configs", config_name="data", version_base=None)
+def download_data(cfg: DictConfig) -> None:
     """Download the LaTeX OCR dataset from HuggingFace and save locally.
 
     Args:
@@ -92,6 +90,12 @@ def download_data(
         split: Dataset split (train, validation, test)
         output_path: Base path to save the dataset
     """
+
+    download_cfg = cfg.download
+    name = download_cfg.name
+    split = download_cfg.split
+    output_path = Path(download_cfg.output_path)
+
     logger.info(f"Downloading LaTeX_OCR dataset (name={name}, split={split})...")
     dataset = load_dataset("linxy/LaTeX_OCR", name=name, split=split)
     logger.info(f"Successfully loaded dataset with {len(dataset)} samples")
@@ -127,5 +131,6 @@ def download_data(
     logger.info(f"  - Labels: {labels_file}")
     logger.info(f"  - Total samples: {len(labels)}")
 
+
 if __name__ == "__main__":
-    typer.run(download_data)
+    download_data()
