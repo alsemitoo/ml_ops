@@ -17,6 +17,11 @@ classifiers = [
 ]
 readme = "README.md"
 requires-python = ">=3.11"
+
+[project.scripts]
+download-data = "ml_ops_project.data:download_data"
+train-model = "ml_ops_project.train:train"
+
 dependencies = [
     "datasets>=4.4.2",
     "dvc>=3.66.1",
