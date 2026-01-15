@@ -64,10 +64,7 @@ class Im2LatexModel(nn.Module):
         # Output projection to vocabulary
         self.fc_out = nn.Linear(d_model, vocab_size)
 
-        logger.info(
-            f"Model initialized with {sum(p.numel() for p in self.parameters())} "
-            "total parameters"
-        )
+        logger.info(f"Model initialized with {sum(p.numel() for p in self.parameters())} " "total parameters")
 
     def forward(
         self,
@@ -104,9 +101,7 @@ class Im2LatexModel(nn.Module):
         tgt_emb = self.embedding(tgt_text).permute(1, 0, 2)  # (Seq_Len, Batch, d_model)
 
         # 2. Generate causal mask to prevent attending to future tokens
-        tgt_mask = self._generate_square_subsequent_mask(tgt_emb.size(0)).to(
-            images.device
-        )
+        tgt_mask = self._generate_square_subsequent_mask(tgt_emb.size(0)).to(images.device)
 
         # 3. Run transformer decoder
         output = self.decoder(
@@ -132,9 +127,7 @@ class Im2LatexModel(nn.Module):
             Causal mask tensor of shape (sz, sz)
         """
         mask = (torch.triu(torch.ones(sz, sz)) == 1).transpose(0, 1)
-        mask = mask.float().masked_fill(mask == 0, float("-inf")).masked_fill(
-            mask == 1, float(0.0)
-        )
+        mask = mask.float().masked_fill(mask == 0, float("-inf")).masked_fill(mask == 1, float(0.0))
         return mask
 
 

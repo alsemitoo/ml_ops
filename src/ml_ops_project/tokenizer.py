@@ -107,7 +107,7 @@ class LaTeXTokenizer:
             if skip_special_tokens and token in [self.pad_token, self.start_token, self.end_token, self.unk_token]:
                 continue
             tokens.append(token)
-        
+
         logger.debug(f"Decoded {len(indices)} indices to {len(tokens)} tokens (skip_special={skip_special_tokens})")
         return " ".join(tokens)
 
@@ -130,14 +130,14 @@ class LaTeXTokenizer:
 
 if __name__ == "__main__":
     logger.info("Testing LaTeX tokenizer...")
-    
+
     # Create a test tokenizer
     tokenizer = LaTeXTokenizer()
     logger.info(f"Created tokenizer with vocab size: {tokenizer.vocab_size}")
-    
+
     # Test encode/decode
     test_text = "\\frac{x}{y} + \\sqrt{z}"
     encoded = tokenizer.encode(test_text)
     logger.info(f"Encoded '{test_text}' to {len(encoded)} tokens")
-    
+
     logger.success("Tokenizer test completed successfully")
