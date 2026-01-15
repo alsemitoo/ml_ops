@@ -1,21 +1,26 @@
 """Training script for Image-to-LaTeX model."""
+import cProfile
+import pstats
 from pathlib import Path
 
-import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import torch.nn as nn
+from hydra import main as hydra_main
+from loguru import logger
+from omegaconf import DictConfig
 from torch.utils.data import DataLoader, random_split
 
 from ml_ops_project.data import MyDataset
 from ml_ops_project.model import Im2LatexModel
 from ml_ops_project.preprocess import get_train_transform, get_val_test_transform
 from ml_ops_project.tokenizer import LaTeXTokenizer
+from ml_ops_project.visualize import plot_training_statistics
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
 
 
-def collate_fn(batch):
+def collate_fn(batch: list[tuple[torch.Tensor, torch.Tensor]]) -> tuple[torch.Tensor, torch.Tensor]:
     """Collate function to handle variable-length sequences with padding.
 
     Args:
@@ -38,27 +43,20 @@ def collate_fn(batch):
     return images, labels
 
 
-def train(epochs: int = 10, batch_size: int = 32, data_path: str | Path = "data/raw/default_train"):
-    """Train the Image-to-LaTeX model.
+def prepare_datasets(
+    data_path: Path, tokenizer: LaTeXTokenizer
+) -> tuple[torch.utils.data.Subset, torch.utils.data.Subset, torch.utils.data.Subset]:
+    """Prepare train, validation, and test datasets.
 
     Args:
-        epochs: Number of training epochs
-        batch_size: Batch size for training
-        data_path: Path to training data directory
+        data_path: Path to dataset directory
+        tokenizer: Tokenizer instance
+
+    Returns:
+        Tuple of (train_dataset, val_dataset, test_dataset)
     """
-    data_path = Path(data_path)
-
-    # Build tokenizer from labels
-    print("Building tokenizer from labels...")
-    tokenizer = LaTeXTokenizer()
-    tokenizer.build_vocab(data_path / "labels.json")
-    vocab_size = tokenizer.vocab_size
-    pad_idx = tokenizer.get_pad_idx()
-
-    print(f"Vocabulary size: {vocab_size}")
-
     # Create datasets with appropriate transforms for each split
-    print("Loading datasets...")
+    logger.info("Loading datasets...")
     train_transform = get_train_transform()
     val_test_transform = get_val_test_transform()
 
@@ -106,90 +104,183 @@ def train(epochs: int = 10, batch_size: int = 32, data_path: str | Path = "data/
     )
     test_dataset = torch.utils.data.Subset(test_dataset_base, test_indices)
 
-    print(f"Train samples: {len(train_dataset)}, Val samples: {len(val_dataset)}, Test samples: {len(test_dataset)}")
-
-    # Create data loaders
-    train_dataloader = DataLoader(
-        train_dataset, batch_size=batch_size, shuffle=True, collate_fn=collate_fn, num_workers=0
-    )
-    val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, collate_fn=collate_fn, num_workers=0)
-    test_dataloader = DataLoader(
-        test_dataset, batch_size=batch_size, shuffle=False, collate_fn=collate_fn, num_workers=0
+    logger.info(
+        f"Train samples: {len(train_dataset)}, Val samples: {len(val_dataset)}, Test samples: {len(test_dataset)}"
     )
 
-    # Initialize model
-    model = Im2LatexModel(
-        vocab_size=vocab_size,
-        d_model=256,
-        nhead=4,
-        num_decoder_layers=3,
-    )
-    model.to(DEVICE)
+    return train_dataset, val_dataset, test_dataset
 
-    # Loss function (ignore padding tokens)
-    loss_fn = nn.CrossEntropyLoss(ignore_index=pad_idx)
-    optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
 
-    statistics: dict[str, list[float]] = {"train_loss": [], "train_accuracy": [], "val_loss": [], "val_accuracy": []}
+def train_epoch(
+    model: nn.Module,
+    train_dataloader: DataLoader,
+    loss_fn: nn.Module,
+    optimizer: torch.optim.Optimizer,
+    vocab_size: int,
+    pad_idx: int,
+    epoch: int,
+) -> tuple[list[float], list[float]]:
+    """Train the model for one epoch.
 
-    for epoch in range(epochs):
-        # Training phase
-        model.train()
-        epoch_train_loss = []
-        epoch_train_acc = []
+    Args:
+        model: The Image-to-LaTeX model
+        dataloader: DataLoader for training data
+        loss_fn: Loss function
+        optimizer: Optimizer
+        vocab_size: Size of the vocabulary
+        pad_idx: Padding token index
+        epoch: Current epoch number
 
-        for i, (images, labels) in enumerate(train_dataloader):
+    Returns:
+        Tuple of (epoch_train_loss, epoch_train_acc)
+    """
+    # Training phase
+    model.train()
+    epoch_train_loss = []
+    epoch_train_acc = []
+
+    for i, (images, labels) in enumerate(train_dataloader):
+        images, labels = images.to(DEVICE), labels.to(DEVICE)
+
+        # Teacher forcing: input is labels[:-1], target is labels[1:]
+        # For each sequence, we predict the next token given previous tokens
+        tgt_input = labels[:, :-1]  # Remove last token for input
+        tgt_output = labels[:, 1:]  # Remove first token for target
+        optimizer.zero_grad()
+        y_pred = model(images, tgt_input)  # (Batch, Seq_Len-1, Vocab_Size)
+
+        # Reshape for loss: (Batch * Seq_Len-1, Vocab_Size) and (Batch * Seq_Len-1,)
+        loss = loss_fn(y_pred.reshape(-1, vocab_size), tgt_output.reshape(-1))
+        loss.backward()
+        optimizer.step()
+        epoch_train_loss.append(loss.item())
+
+        # Calculate accuracy (excluding padding)
+        pred_tokens = y_pred.argmax(dim=2)
+        mask = tgt_output != pad_idx
+        correct = (pred_tokens == tgt_output) * mask
+        accuracy = correct.sum().float() / mask.sum().float()
+        epoch_train_acc.append(accuracy.item())
+
+        if i % 100 == 0:
+            logger.info(f"Epoch {epoch}, iter {i}, loss: {loss.item():.4f}, acc: {accuracy.item():.4f}")
+
+
+def validate_epoch(
+    model: nn.Module,
+    val_dataloader: DataLoader,
+    loss_fn: nn.Module,
+    vocab_size: int,
+    pad_idx: int,
+) -> tuple[list[float], list[float]]:
+    """Validate the model for one epoch.
+
+    Args:
+        model: The Image-to-LaTeX model
+        dataloader: DataLoader for validation data
+        loss_fn: Loss function
+        vocab_size: Size of the vocabulary
+        pad_idx: Padding token index
+        epoch: Current epoch number
+
+    Returns:
+        Tuple of (epoch_val_loss, epoch_val_acc)
+    """
+    # Validation phase
+    model.eval()
+    epoch_val_loss = []
+    epoch_val_acc = []
+
+    with torch.no_grad():
+        for images, labels in val_dataloader:
             images, labels = images.to(DEVICE), labels.to(DEVICE)
 
-            # Teacher forcing: input is labels[:-1], target is labels[1:]
-            # For each sequence, we predict the next token given previous tokens
-            tgt_input = labels[:, :-1]  # Remove last token for input
-            tgt_output = labels[:, 1:]  # Remove first token for target
+            tgt_input = labels[:, :-1]
+            tgt_output = labels[:, 1:]
 
-            optimizer.zero_grad()
-            y_pred = model(images, tgt_input)  # (Batch, Seq_Len-1, Vocab_Size)
+            y_pred = model(images, tgt_input)
 
-            # Reshape for loss: (Batch * Seq_Len-1, Vocab_Size) and (Batch * Seq_Len-1,)
             loss = loss_fn(y_pred.reshape(-1, vocab_size), tgt_output.reshape(-1))
 
-            loss.backward()
-            optimizer.step()
+            epoch_val_loss.append(loss.item())
 
-            epoch_train_loss.append(loss.item())
-
-            # Calculate accuracy (excluding padding)
             pred_tokens = y_pred.argmax(dim=2)
             mask = tgt_output != pad_idx
             correct = (pred_tokens == tgt_output) * mask
             accuracy = correct.sum().float() / mask.sum().float()
-            epoch_train_acc.append(accuracy.item())
+            epoch_val_acc.append(accuracy.item())
 
-            if i % 100 == 0:
-                print(f"Epoch {epoch}, iter {i}, loss: {loss.item():.4f}, acc: {accuracy.item():.4f}")
+    return epoch_val_loss, epoch_val_acc
 
-        # Validation phase
-        model.eval()
-        epoch_val_loss = []
-        epoch_val_acc = []
 
-        with torch.no_grad():
-            for images, labels in val_dataloader:
-                images, labels = images.to(DEVICE), labels.to(DEVICE)
+@hydra_main(config_path="../../configs", config_name="train", version_base=None)
+def train(cfg: DictConfig):
+    """Train the Image-to-LaTeX model.
 
-                tgt_input = labels[:, :-1]
-                tgt_output = labels[:, 1:]
+    Args:
+        cfg: Hydra configuration object containing training, model, and data parameters
+    """
+    # Configure logger
+    Path("logs").mkdir(exist_ok=True)
+    logger.add(
+        "logs/train.log", rotation="10 MB", level="INFO", format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}"
+    )
 
-                y_pred = model(images, tgt_input)
+    train_cfg = cfg.training
+    model_cfg = cfg.model
 
-                loss = loss_fn(y_pred.reshape(-1, vocab_size), tgt_output.reshape(-1))
+    logger.info(
+        f"Starting training with epochs={train_cfg.epochs}, batch_size={train_cfg.batch_size}, data_path={train_cfg.data_path}"
+    )
 
-                epoch_val_loss.append(loss.item())
+    profiler = cProfile.Profile()
+    profiler.enable()
 
-                pred_tokens = y_pred.argmax(dim=2)
-                mask = tgt_output != pad_idx
-                correct = (pred_tokens == tgt_output) * mask
-                accuracy = correct.sum().float() / mask.sum().float()
-                epoch_val_acc.append(accuracy.item())
+    data_path = Path(train_cfg.data_path)
+
+    # Build tokenizer from labels
+    logger.info("Building tokenizer from labels...")
+    tokenizer = LaTeXTokenizer()
+    tokenizer.build_vocab(data_path / "labels.json")
+    vocab_size = tokenizer.vocab_size
+    pad_idx = tokenizer.get_pad_idx()
+
+    logger.info(f"Vocabulary size: {vocab_size}")
+
+    train_dataset, val_dataset, test_dataset = prepare_datasets(data_path, tokenizer)
+
+    # Create data loaders
+    train_dataloader = DataLoader(
+        train_dataset, batch_size=train_cfg.batch_size, shuffle=True, collate_fn=collate_fn, num_workers=0
+    )
+    val_dataloader = DataLoader(
+        val_dataset, batch_size=train_cfg.batch_size, shuffle=False, collate_fn=collate_fn, num_workers=0
+    )
+
+    # Initialize model
+    logger.info(f"Initializing model on device: {DEVICE}")
+    model = Im2LatexModel(
+        vocab_size=vocab_size,
+        d_model=model_cfg.d_model,
+        nhead=model_cfg.nhead,
+        num_decoder_layers=model_cfg.num_decoder_layers,
+    )
+    model.to(DEVICE)
+    logger.info(f"Model initialized with {sum(p.numel() for p in model.parameters())} parameters")
+
+    # Loss function (ignore padding tokens)
+    loss_fn = nn.CrossEntropyLoss(ignore_index=pad_idx)
+    optimizer = torch.optim.Adam(model.parameters(), lr=train_cfg.learning_rate)
+
+    statistics: dict[str, list[float]] = {"train_loss": [], "train_accuracy": [], "val_loss": [], "val_accuracy": []}
+
+    for epoch in range(train_cfg.epochs):
+        # Training phase
+        epoch_train_loss, epoch_train_acc = train_epoch(
+            model, train_dataloader, loss_fn, optimizer, vocab_size, pad_idx, epoch
+        )
+
+        epoch_val_loss, epoch_val_acc = validate_epoch(model, val_dataloader, loss_fn, vocab_size, pad_idx, epoch)
 
         # Record statistics
         statistics["train_loss"].extend(epoch_train_loss)
@@ -202,46 +293,29 @@ def train(epochs: int = 10, batch_size: int = 32, data_path: str | Path = "data/
         avg_val_loss = np.mean(epoch_val_loss)
         avg_val_acc = np.mean(epoch_val_acc)
 
-        print(f"Epoch {epoch} Summary:")
-        print(f"  Train Loss: {avg_train_loss:.4f}, Train Acc: {avg_train_acc:.4f}")
-        print(f"  Val Loss: {avg_val_loss:.4f}, Val Acc: {avg_val_acc:.4f}")
-        print()
+        logger.info(f"Epoch {epoch} Summary:")
+        logger.info(f"  Train Loss: {avg_train_loss:.4f}, Train Acc: {avg_train_acc:.4f}")
+        logger.info(f"  Val Loss: {avg_val_loss:.4f}, Val Acc: {avg_val_acc:.4f}")
 
-    print("Training complete")
+    logger.success("Training complete")
+
+    profiler.disable()
+    stats = pstats.Stats(profiler)
+    stats.sort_stats("cumulative")
+    Path("reports/profiling").mkdir(parents=True, exist_ok=True)
+    stats.dump_stats("reports/profiling/train_profile.prof")
+    with open("reports/profiling/train_profile.txt", "w") as f:
+        stats.stream = f
+        stats.print_stats(50)
 
     # Save model and tokenizer
     Path("models").mkdir(exist_ok=True)
+    logger.info("Saving model and tokenizer...")
     torch.save(model.state_dict(), "models/model.pth")
     torch.save(tokenizer.vocab, "models/vocab.pt")
-    print("Model and vocabulary saved to models/")
+    logger.success("Model and vocabulary saved to models/")
 
-    # Save training statistics plots
-    Path("reports/figures").mkdir(parents=True, exist_ok=True)
-    fig, axs = plt.subplots(2, 2, figsize=(15, 10))
-
-    axs[0, 0].plot(statistics["train_loss"])
-    axs[0, 0].set_title("Train Loss")
-    axs[0, 0].set_xlabel("Iteration")
-    axs[0, 0].set_ylabel("Loss")
-
-    axs[0, 1].plot(statistics["train_accuracy"])
-    axs[0, 1].set_title("Train Accuracy")
-    axs[0, 1].set_xlabel("Iteration")
-    axs[0, 1].set_ylabel("Accuracy")
-
-    axs[1, 0].plot(statistics["val_loss"])
-    axs[1, 0].set_title("Validation Loss")
-    axs[1, 0].set_xlabel("Iteration")
-    axs[1, 0].set_ylabel("Loss")
-
-    axs[1, 1].plot(statistics["val_accuracy"])
-    axs[1, 1].set_title("Validation Accuracy")
-    axs[1, 1].set_xlabel("Iteration")
-    axs[1, 1].set_ylabel("Accuracy")
-
-    plt.tight_layout()
-    fig.savefig("reports/figures/training_statistics.png")
-    print("Training statistics saved to reports/figures/training_statistics.png")
+    plot_training_statistics(statistics, Path("logs/training_statistics.png"))
 
 
 if __name__ == "__main__":
