@@ -1,0 +1,11 @@
+model: 
+  vocab_size: null
+  d_model: 64
+  nhead: 2
+  num_decoder_layers: 1
+
+training:
+  epochs: 1
+  batch_size: 4
+  learning_rate: 0.001
+  data_path: "data/raw/default_train"

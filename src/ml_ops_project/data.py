@@ -6,10 +6,10 @@ from typing import Callable
 import torch
 from datasets import load_dataset
 from hydra import main as hydra_main
+from loguru import logger
 from omegaconf import DictConfig
 from PIL import Image
 from torch.utils.data import Dataset
-from loguru import logger
 
 from ml_ops_project.tokenizer import LaTeXTokenizer
 
