@@ -214,9 +214,7 @@ def train(cfg: DictConfig):
     """Train the Image-to-LaTeX model.
 
     Args:
-        epochs: Number of training epochs
-        batch_size: Batch size for training
-        data_path: Path to training data directory
+        cfg: Hydra configuration object containing training, model, and data parameters
     """
     # Configure logger
     Path("logs").mkdir(exist_ok=True)
