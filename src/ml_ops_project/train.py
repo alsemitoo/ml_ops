@@ -164,6 +164,8 @@ def train_epoch(
 
         if i % 100 == 0:
             logger.info(f"Epoch {epoch}, iter {i}, loss: {loss.item():.4f}, acc: {accuracy.item():.4f}")
+            
+    return epoch_train_loss, epoch_train_acc
 
 
 def validate_epoch(
