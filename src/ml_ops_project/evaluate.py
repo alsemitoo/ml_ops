@@ -1,12 +1,11 @@
-from pathlib import Path
-
 import torch
 import torch.nn as nn
-from hydra import main as hydra_main
-from loguru import logger
-from omegaconf import DictConfig
-from torch.amp import autocast
 from torch.utils.data import DataLoader, random_split
+from pathlib import Path
+from hydra import main as hydra_main
+from omegaconf import DictConfig
+from loguru import logger
+from torch.amp import autocast
 from tqdm import tqdm
 
 from ml_ops_project.data import MyDataset
@@ -43,9 +42,8 @@ def get_test_dataset(data_path: Path, tokenizer: LaTeXTokenizer):
 
 
 # --- FIXED GENERATION FUNCTION ---
-import math
-
 import torch
+import math
 
 
 def beam_search_prediction(model, image, tokenizer, beam_width=3, max_len=150):
@@ -58,8 +56,8 @@ def beam_search_prediction(model, image, tokenizer, beam_width=3, max_len=150):
     device = next(model.parameters()).device
 
     # Setup IDs
-    sos_id = tokenizer.token_to_id.get("<START>", tokenizer.token_to_id.get("<SOS>"))
-    eos_id = tokenizer.token_to_id.get("<END>", tokenizer.token_to_id.get("<EOS>"))
+    sos_id = tokenizer.vocab.get("<START>", tokenizer.vocab.get("<SOS>"))
+    eos_id = tokenizer.vocab.get("<END>", tokenizer.vocab.get("<EOS>"))
 
     # Fallback
     if sos_id is None:
@@ -131,7 +129,7 @@ def beam_search_prediction(model, image, tokenizer, beam_width=3, max_len=150):
 
     # FIX 3: MANUAL DECODE (Bypass tokenizer.decode)
     # We use the id_to_token map directly.
-    decoded_strings = [tokenizer.id_to_token.get(t, "<UNK>") for t in tokens]
+    decoded_strings = [tokenizer.idx_to_token.get(t, "<UNK>") for t in tokens]
 
     return decoded_strings  # Returns list of strings e.g. ['\hat', '{', 'a', '}']
 
@@ -185,8 +183,7 @@ def test(cfg: DictConfig):
     # Initialize Tokenizer
     tokenizer = LaTeXTokenizer()
     tokenizer.vocab = vocab
-    tokenizer.token_to_id = vocab
-    tokenizer.id_to_token = id_to_token
+    tokenizer.idx_to_token = id_to_token
 
     pad_idx = tokenizer.get_pad_idx()
     vocab_size = len(tokenizer.vocab)
@@ -199,12 +196,12 @@ def test(cfg: DictConfig):
     eos_id = None
 
     for token in possible_sos:
-        if token in tokenizer.token_to_id:
-            sos_id = tokenizer.token_to_id[token]
+        if token in tokenizer.vocab:
+            sos_id = tokenizer.vocab[token]
             break
     for token in possible_eos:
-        if token in tokenizer.token_to_id:
-            eos_id = tokenizer.token_to_id[token]
+        if token in tokenizer.vocab:
+            eos_id = tokenizer.vocab[token]
             break
 
     # 3. LOAD DATA & MODEL
