@@ -6,7 +6,6 @@ from ml_ops_project.tokenizer import LaTeXTokenizer
 from PIL import Image
 from torch.utils.data import Dataset
 
-
 def test_my_dataset(tmp_path: Path) -> None:
     """Test the MyDataset class."""
     images_dir = tmp_path / "images"

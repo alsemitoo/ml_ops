@@ -23,7 +23,7 @@ def model_params():
         "vocab_size": 100,
         "d_model": 32,  # Small dimension for speed
         "nhead": 2,
-        "num_decoder_layers": 1
+        "num_decoder_layers": 1,
     }
 
 
@@ -33,19 +33,18 @@ def mock_backbone_model(model_params):
     with patch("torchvision.models.resnet18") as mock_resnet_fn:
         # Setup the mock to return a dummy backbone structure
         mock_resnet_fn.return_value = get_mock_resnet()
-        
+
         model = Im2LatexModel(**model_params)
-        
+
         # FIX: Use stride=16 to simulate ResNet downsampling
         # Input: (Batch, 3, 224, 224) -> Output: (Batch, 256, 14, 14)
         # 14 * 14 = 196 patches (which fits within the 320 limit)
-        model.backbone = nn.Sequential(
-            nn.Conv2d(3, 256, kernel_size=3, stride=16, padding=1)
-        )
+        model.backbone = nn.Sequential(nn.Conv2d(3, 256, kernel_size=3, stride=16, padding=1))
         return model
 
 
 # --- TESTS ---
+
 
 def test_model_initialization(mock_backbone_model, model_params):
     """Test if model initializes with correct parameters."""
@@ -76,16 +75,16 @@ def test_model_forward_shape(mock_backbone_model, batch_size, seq_len, model_par
 def test_causal_mask_structure():
     """Verify the causal mask is strictly upper triangular with -inf."""
     mask = Im2LatexModel._generate_square_subsequent_mask(4)
-    
+
     # Shape check
     assert mask.shape == (4, 4)
-    
+
     # Check diagonal and below is 0.0 (visible)
     # Note: The implementation might use -inf for masked and 0 for visible
     assert mask[0, 0] == 0.0
     assert mask[1, 0] == 0.0
     assert mask[1, 1] == 0.0
-    
+
     # Check above diagonal is -inf (masked)
     assert mask[0, 1] == float("-inf")
     assert mask[0, 2] == float("-inf")
@@ -96,11 +95,11 @@ def test_forward_pass_flow(mock_backbone_model, model_params):
     """Test that gradients can flow (smoke test for connectivity)."""
     images = torch.randn(2, 3, 64, 64)
     tgt_text = torch.randint(0, model_params["vocab_size"], (2, 10))
-    
+
     output = mock_backbone_model(images, tgt_text)
     loss = output.sum()
     loss.backward()
-    
+
     # Check if gradients are populated for a key layer
     assert mock_backbone_model.fc_out.weight.grad is not None
 
@@ -110,10 +109,10 @@ def test_error_on_wrong_image_channels(mock_backbone_model):
     # Input has 1 channel (grayscale) instead of 3
     images = torch.randn(1, 1, 64, 64)
     tgt_text = torch.randint(0, 10, (1, 5))
-    
+
     # Expect a RuntimeError due to Conv2d mismatch
     with pytest.raises(RuntimeError) as excinfo:
         mock_backbone_model(images, tgt_text)
-    
+
     # The error usually mentions channel mismatch
     assert "Expected" in str(excinfo.value) or "channels" in str(excinfo.value)

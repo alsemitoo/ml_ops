@@ -1,4 +1,5 @@
 """Image-to-LaTeX model using ResNet encoder and Transformer decoder."""
+
 import torch
 import torch.nn as nn
 import torchvision.models as models
@@ -64,7 +65,7 @@ class Im2LatexModel(nn.Module):
         # Output projection to vocabulary
         self.fc_out = nn.Linear(d_model, vocab_size)
 
-        logger.info(f"Model initialized with {sum(p.numel() for p in self.parameters())} " "total parameters")
+        logger.info(f"Model initialized with {sum(p.numel() for p in self.parameters())} total parameters")
 
     def forward(
         self,

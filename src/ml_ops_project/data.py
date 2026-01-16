@@ -1,4 +1,5 @@
 """Data loading and dataset classes for LaTeX OCR."""
+
 import json
 from pathlib import Path
 from typing import Callable
