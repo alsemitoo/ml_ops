@@ -27,8 +27,8 @@ dependencies = [
     "loguru>=0.7.3",
     "matplotlib>=3.10.8",
     "pillow>=12.1.0",
-    "torch>=2.10.0.dev20251211",
-    "torchvision>=0.25.0.dev20251124",
+    "torch>=2.5.1",
+    "torchvision>=0.20.1",
     "typer==0.15.1",
     "uvicorn==0.34.0",
 ]
@@ -47,13 +47,13 @@ dev = [
 ]
 
 [[tool.uv.index]]
-name = "pytorch-nightly-cu128"
-url = "https://download.pytorch.org/whl/nightly/cu128"
+name = "pytorch-cu124"
+url = "https://download.pytorch.org/whl/cu124"
 explicit = true
 
 [[tool.uv.index]]
-name = "pytorch-nightly-cpu"
-url = "https://download.pytorch.org/whl/nightly/cpu"
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
 explicit = true
 
 [tool.ruff]
@@ -69,14 +69,14 @@ ignore_missing_imports = true
 
 [tool.uv.sources]
 torch = [
-  # Windows: Use CUDA 12.8 (GPU)
-  { index = "pytorch-nightly-cu128", marker = "sys_platform == 'win32'" },
-  # Linux & macOS: Use CPU (Fixes CI failure)
-  { index = "pytorch-nightly-cpu", marker = "sys_platform != 'win32'" }
+    # Windows: Use CUDA 12.4 (Stable GPU)
+    { index = "pytorch-cu124", marker = "sys_platform == 'win32'" },
+    # Linux & macOS: Use CPU (Stable)
+    { index = "pytorch-cpu", marker = "sys_platform != 'win32'" }
 ]
 torchvision = [
-  { index = "pytorch-nightly-cu128", marker = "sys_platform == 'win32'" },
-  { index = "pytorch-nightly-cpu", marker = "sys_platform != 'win32'" }
+    { index = "pytorch-cu124", marker = "sys_platform == 'win32'" },
+    { index = "pytorch-cpu", marker = "sys_platform != 'win32'" }
 ]
 
 [tool.uv]
