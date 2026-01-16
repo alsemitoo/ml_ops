@@ -47,11 +47,13 @@ dev = [
 ]
 
 [[tool.uv.index]]
-# name = "pytorch-cpu"
-# url = "https://download.pytorch.org/whl/cpu"
-# explicit = true
-name = "pytorch-nightly"
+name = "pytorch-nightly-cu128"
 url = "https://download.pytorch.org/whl/nightly/cu128"
+explicit = true
+
+[[tool.uv.index]]
+name = "pytorch-nightly-cpu"
+url = "https://download.pytorch.org/whl/nightly/cpu"
 explicit = true
 
 [tool.ruff]
@@ -67,10 +69,14 @@ ignore_missing_imports = true
 
 [tool.uv.sources]
 torch = [
-  { index = "pytorch-nightly" }
+  # Use CUDA (GPU) version for Windows and Linux
+  { index = "pytorch-nightly-cu128", marker = "sys_platform != 'darwin'" },
+  # Use CPU version for macOS (Darwin) because Macs don't support CUDA
+  { index = "pytorch-nightly-cpu", marker = "sys_platform == 'darwin'" }
 ]
 torchvision = [
-  { index = "pytorch-nightly" }
+  { index = "pytorch-nightly-cu128", marker = "sys_platform != 'darwin'" },
+  { index = "pytorch-nightly-cpu", marker = "sys_platform == 'darwin'" }
 ]
 
 [tool.uv]
