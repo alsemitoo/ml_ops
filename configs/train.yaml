@@ -5,7 +5,7 @@ model:
   num_decoder_layers: 1
 
 training:
-  epochs: 1
-  batch_size: 4
+  epochs: 10
+  batch_size: 32
   learning_rate: 0.001
   data_path: "data/raw/default_train"

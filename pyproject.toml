@@ -24,8 +24,8 @@ dependencies = [
     "loguru>=0.7.3",
     "matplotlib>=3.10.8",
     "pillow>=12.1.0",
-    "torch==2.6.0",
-    "torchvision>=0.21.0",
+    "torch>=2.10.0.dev20251211",
+    "torchvision>=0.25.0.dev20251124",
     "typer==0.15.1",
     "uvicorn==0.34.0",
 ]
@@ -43,18 +43,12 @@ dev = [
     "mypy>=1.19.1",
 ]
 
-
-[tool.uv.sources]
-torch = [
-    { index = "pytorch-cpu" },
-]
-torchvision = [
-    { index = "pytorch-cpu" },
-]
-
 [[tool.uv.index]]
-name = "pytorch-cpu"
-url = "https://download.pytorch.org/whl/cpu"
+# name = "pytorch-cpu"
+# url = "https://download.pytorch.org/whl/cpu"
+# explicit = true
+name = "pytorch-nightly"
+url = "https://download.pytorch.org/whl/nightly/cu128"
 explicit = true
 
 [tool.ruff]
@@ -67,3 +61,11 @@ omit = ["tests/*"]
 [[tool.mypy.overrides]]
 module = ["torchvision", "torchvision.*"]
 ignore_missing_imports = true
+
+[tool.uv.sources]
+torch = [
+  { index = "pytorch-nightly" }
+]
+torchvision = [
+  { index = "pytorch-nightly" }
+]

@@ -21,7 +21,6 @@ from ml_ops_project.visualize import plot_training_statistics
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
 
-
 def collate_fn(batch: list[tuple[torch.Tensor, torch.Tensor]]) -> tuple[torch.Tensor, torch.Tensor]:
     """Collate function to handle variable-length sequences with padding.
 
@@ -302,7 +301,7 @@ def train(cfg: DictConfig):
     logger.info(f"Model initialized with {sum(p.numel() for p in model.parameters())} parameters")
 
     # Loss function (ignore padding tokens)
-    loss_fn = nn.CrossEntropyLoss(ignore_index=pad_idx)
+    loss_fn = nn.CrossEntropyLoss(ignore_index=pad_idx, label_smoothing=0.1)
     optimizer = torch.optim.Adam(model.parameters(), lr=train_cfg.learning_rate)
 
     # 3. OPTIMIZATION: Initialize GradScaler
