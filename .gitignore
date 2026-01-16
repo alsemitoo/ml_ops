@@ -180,3 +180,7 @@ cython_debug/
 .ruff_cache/
 /data
 .dvc/
+
+
+.hydra/
+outputs/
