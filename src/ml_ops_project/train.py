@@ -29,13 +29,12 @@ def collate_fn(batch: list[tuple[torch.Tensor, torch.Tensor]]) -> tuple[torch.Te
     Returns:
         Tuple of (images, labels) where labels are padded to same length
     """
-    images, labels = zip(*batch)
-    images = torch.stack(images)
+    images_list, labels_list = zip(*batch)
+    images = torch.stack(list(images_list))
 
-    # Pad labels to same length
-    max_len = max(len(label) for label in labels)
+    max_len = max(len(label) for label in labels_list)
     padded_labels = []
-    for label in labels:
+    for label in labels_list:
         padding = torch.zeros(max_len - len(label), dtype=torch.long)
         padded_labels.append(torch.cat([label, padding]))
 
@@ -282,7 +281,7 @@ def train(cfg: DictConfig):
             model, train_dataloader, loss_fn, optimizer, vocab_size, pad_idx, epoch
         )
 
-        epoch_val_loss, epoch_val_acc = validate_epoch(model, val_dataloader, loss_fn, vocab_size, pad_idx, epoch)
+        epoch_val_loss, epoch_val_acc = validate_epoch(model, val_dataloader, loss_fn, vocab_size, pad_idx)
 
         # Record statistics
         statistics["train_loss"].extend(epoch_train_loss)
@@ -302,13 +301,14 @@ def train(cfg: DictConfig):
     logger.success("Training complete")
 
     profiler.disable()
-    stats = pstats.Stats(profiler)
-    stats.sort_stats("cumulative")
-    Path("reports/profiling").mkdir(parents=True, exist_ok=True)
-    stats.dump_stats("reports/profiling/train_profile.prof")
-    with open("reports/profiling/train_profile.txt", "w") as f:
-        stats.stream = f
-        stats.print_stats(50)
+    # TODO: Revise this
+    # stats = pstats.Stats(profiler)
+    # stats.sort_stats("cumulative")
+    # Path("reports/profiling").mkdir(parents=True, exist_ok=True)
+    # stats.dump_stats("reports/profiling/train_profile.prof")
+    # with open("reports/profiling/train_profile.txt", "w") as f:
+    #     stats.stream = f
+    #     stats.print_stats(50)
 
     # Save model and tokenizer
     Path("models").mkdir(exist_ok=True)
