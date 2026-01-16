@@ -1,4 +1,5 @@
 """Training script for Image-to-LaTeX model."""
+
 import cProfile
 import pstats
 import os  # Added for cpu_count
@@ -7,7 +8,7 @@ from pathlib import Path
 import numpy as np
 import torch
 import torch.nn as nn
-from torch.amp import GradScaler, autocast # NEW: Imports for Mixed Precision
+from torch.amp import GradScaler, autocast  # NEW: Imports for Mixed Precision
 from hydra import main as hydra_main
 from loguru import logger
 from omegaconf import DictConfig
@@ -20,6 +21,7 @@ from ml_ops_project.tokenizer import LaTeXTokenizer
 from ml_ops_project.visualize import plot_training_statistics
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
+
 
 def collate_fn(batch: list[tuple[torch.Tensor, torch.Tensor]]) -> tuple[torch.Tensor, torch.Tensor]:
     """Collate function to handle variable-length sequences with padding.
@@ -207,12 +209,12 @@ def validate_epoch(
 
             tgt_input = labels[:, :-1]
             tgt_output = labels[:, 1:]
-            
+
             # NEW: Inference is also faster with autocast
             with autocast(device_type="cuda" if torch.cuda.is_available() else "cpu"):
                 y_pred = model(images, tgt_input)
                 loss = loss_fn(y_pred.reshape(-1, vocab_size), tgt_output.reshape(-1))
-            
+
             epoch_val_loss.append(loss.item())
 
             pred_tokens = y_pred.argmax(dim=2)
@@ -268,22 +270,22 @@ def train(cfg: DictConfig):
     # pin_memory=True speeds up CPU->GPU transfer
     # num_workers=4 enables parallel preprocessing (CRITICAL FIX)
     train_dataloader = DataLoader(
-        train_dataset, 
-        batch_size=train_cfg.batch_size, 
-        shuffle=True, 
-        collate_fn=collate_fn, 
+        train_dataset,
+        batch_size=train_cfg.batch_size,
+        shuffle=True,
+        collate_fn=collate_fn,
         num_workers=num_workers,
         pin_memory=True,
-        persistent_workers=True
+        persistent_workers=True,
     )
     val_dataloader = DataLoader(
-        val_dataset, 
-        batch_size=train_cfg.batch_size, 
-        shuffle=False, 
-        collate_fn=collate_fn, 
+        val_dataset,
+        batch_size=train_cfg.batch_size,
+        shuffle=False,
+        collate_fn=collate_fn,
         num_workers=num_workers,
         pin_memory=True,
-        persistent_workers=True
+        persistent_workers=True,
     )
 
     # Initialize model
@@ -312,10 +314,7 @@ def train(cfg: DictConfig):
             model, train_dataloader, loss_fn, optimizer, vocab_size, pad_idx, epoch, scaler
         )
 
-        epoch_val_loss, epoch_val_acc = validate_epoch(
-            model, val_dataloader, loss_fn, vocab_size, pad_idx
-        )
-
+        epoch_val_loss, epoch_val_acc = validate_epoch(model, val_dataloader, loss_fn, vocab_size, pad_idx)
 
         # Record statistics
         statistics["train_loss"].extend(epoch_train_loss)
