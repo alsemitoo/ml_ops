@@ -51,11 +51,6 @@ name = "pytorch-cu124"
 url = "https://download.pytorch.org/whl/cu124"
 explicit = true
 
-[[tool.uv.index]]
-name = "pytorch-cpu"
-url = "https://download.pytorch.org/whl/cpu"
-explicit = true
-
 [tool.ruff]
 line-length = 120
 lint.select = ["I"]
@@ -69,14 +64,10 @@ ignore_missing_imports = true
 
 [tool.uv.sources]
 torch = [
-    # Windows: Use CUDA 12.4 (Stable GPU)
     { index = "pytorch-cu124", marker = "sys_platform == 'win32'" },
-    # Linux & macOS: Use CPU (Stable)
-    { index = "pytorch-cpu", marker = "sys_platform != 'win32'" }
 ]
 torchvision = [
     { index = "pytorch-cu124", marker = "sys_platform == 'win32'" },
-    { index = "pytorch-cpu", marker = "sys_platform != 'win32'" }
 ]
 
 [tool.uv]
