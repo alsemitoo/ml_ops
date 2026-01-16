@@ -1,11 +1,12 @@
+from pathlib import Path
+
 import torch
 import torch.nn as nn
-from torch.utils.data import DataLoader, random_split
-from pathlib import Path
 from hydra import main as hydra_main
-from omegaconf import DictConfig
 from loguru import logger
+from omegaconf import DictConfig
 from torch.amp import autocast
+from torch.utils.data import DataLoader, random_split
 from tqdm import tqdm
 
 from ml_ops_project.data import MyDataset
@@ -42,8 +43,9 @@ def get_test_dataset(data_path: Path, tokenizer: LaTeXTokenizer):
 
 
 # --- FIXED GENERATION FUNCTION ---
-import torch
 import math
+
+import torch
 
 
 def beam_search_prediction(model, image, tokenizer, beam_width=3, max_len=150):

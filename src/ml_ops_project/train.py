@@ -1,17 +1,17 @@
 """Training script for Image-to-LaTeX model."""
 
 import cProfile
-import pstats
 import os  # Added for cpu_count
+import pstats
 from pathlib import Path
 
 import numpy as np
 import torch
 import torch.nn as nn
-from torch.amp import GradScaler, autocast  # NEW: Imports for Mixed Precision
 from hydra import main as hydra_main
 from loguru import logger
 from omegaconf import DictConfig
+from torch.amp import GradScaler, autocast  # NEW: Imports for Mixed Precision
 from torch.utils.data import DataLoader, random_split
 
 from ml_ops_project.data import MyDataset
