@@ -1,6 +1,0 @@
-[theme]
-primaryColor = "#FF6B6B"      # Main accent color
-backgroundColor = "#FFFFFF"   # Page background
-secondaryBackgroundColor = "#F0F2F6"  # Sidebar/container background
-textColor = "#262730"         # Text color
-font = "sans serif"           # or "monospace"
