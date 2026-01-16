@@ -178,6 +178,6 @@ cython_debug/
 
 
 data/
-.ruff_cache/
-
 outputs/
+.ruff_cache/
+.dvc/

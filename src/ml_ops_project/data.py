@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Callable
 
 import torch
-from datasets import load_dataset
+from datasets import load_dataset  # type: ignore
 from hydra import main as hydra_main
 from loguru import logger
 from omegaconf import DictConfig

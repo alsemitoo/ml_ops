@@ -5,9 +5,7 @@ import matplotlib.pyplot as plt
 from loguru import logger
 
 
-def plot_training_statistics(
-    statistics: dict[str, list[float]], output_path: Path
-) -> None:
+def plot_training_statistics(statistics: dict[str, list[float]], output_path: Path) -> None:
     """Create and save training statistics plots.
 
     Args:
