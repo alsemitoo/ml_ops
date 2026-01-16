@@ -12,4 +12,8 @@ COPY configs configs/
 COPY README.md README.md
 COPY LICENSE LICENSE
 
+VOLUME ["/data"]
+
 ENTRYPOINT ["uv", "run", "python", "src/ml_ops_project/data.py"]
+
+# docker run -v ${PWD}/data:/data ml-ops-data:latest

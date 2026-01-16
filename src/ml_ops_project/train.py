@@ -1,8 +1,8 @@
 """Training script for Image-to-LaTeX model."""
-from pathlib import Path
 import cProfile
 import pstats
 import os  # Added for cpu_count
+from pathlib import Path
 
 import numpy as np
 import torch
@@ -30,13 +30,12 @@ def collate_fn(batch: list[tuple[torch.Tensor, torch.Tensor]]) -> tuple[torch.Te
     Returns:
         Tuple of (images, labels) where labels are padded to same length
     """
-    images, labels = zip(*batch)
-    images = torch.stack(images)
+    images_list, labels_list = zip(*batch)
+    images = torch.stack(list(images_list))
 
-    # Pad labels to same length
-    max_len = max(len(label) for label in labels)
+    max_len = max(len(label) for label in labels_list)
     padded_labels = []
-    for label in labels:
+    for label in labels_list:
         padding = torch.zeros(max_len - len(label), dtype=torch.long)
         padded_labels.append(torch.cat([label, padding]))
 
@@ -140,10 +139,10 @@ def train_epoch(
     model.train()
     epoch_train_loss = []
     epoch_train_acc = []
-    
+
     for i, (images, labels) in enumerate(train_dataloader):
         images, labels = images.to(DEVICE), labels.to(DEVICE)
-        
+
         # Teacher forcing: input is labels[:-1], target is labels[1:]
         # For each sequence, we predict the next token given previous tokens
         tgt_input = labels[:, :-1]  # Remove last token for input
@@ -163,14 +162,14 @@ def train_epoch(
         scaler.update()
 
         epoch_train_loss.append(loss.item())
-        
+
         # Calculate accuracy (excluding padding)
         pred_tokens = y_pred.argmax(dim=2)
         mask = tgt_output != pad_idx
         correct = (pred_tokens == tgt_output) * mask
         accuracy = correct.sum().float() / mask.sum().float()
         epoch_train_acc.append(accuracy.item())
-        
+
         if i % 100 == 0:
             logger.info(f"Epoch {epoch}, iter {i}, loss: {loss.item():.4f}, acc: {accuracy.item():.4f}")
 
@@ -201,11 +200,11 @@ def validate_epoch(
     model.eval()
     epoch_val_loss = []
     epoch_val_acc = []
-    
+
     with torch.no_grad():
         for images, labels in val_dataloader:
             images, labels = images.to(DEVICE), labels.to(DEVICE)
-            
+
             tgt_input = labels[:, :-1]
             tgt_output = labels[:, 1:]
             
@@ -215,13 +214,13 @@ def validate_epoch(
                 loss = loss_fn(y_pred.reshape(-1, vocab_size), tgt_output.reshape(-1))
             
             epoch_val_loss.append(loss.item())
-            
+
             pred_tokens = y_pred.argmax(dim=2)
             mask = tgt_output != pad_idx
             correct = (pred_tokens == tgt_output) * mask
             accuracy = correct.sum().float() / mask.sum().float()
             epoch_val_acc.append(accuracy.item())
-            
+
     return epoch_val_loss, epoch_val_acc
 
 
@@ -230,9 +229,7 @@ def train(cfg: DictConfig):
     """Train the Image-to-LaTeX model.
 
     Args:
-        epochs: Number of training epochs
-        batch_size: Batch size for training
-        data_path: Path to training data directory
+        cfg: Hydra configuration object containing training, model, and data parameters
     """
     # Configure logger
     Path("logs").mkdir(exist_ok=True)
@@ -250,7 +247,7 @@ def train(cfg: DictConfig):
     logger.info(
         f"Starting training with epochs={train_cfg.epochs}, batch_size={train_cfg.batch_size}, data_path={train_cfg.data_path}"
     )
-    
+
     profiler = cProfile.Profile()
     profiler.enable()
 
@@ -336,15 +333,16 @@ def train(cfg: DictConfig):
         logger.info(f"  Val Loss: {avg_val_loss:.4f}, Val Acc: {avg_val_acc:.4f}")
 
     logger.success("Training complete")
-    
+
     profiler.disable()
-    stats = pstats.Stats(profiler)
-    stats.sort_stats("cumulative")
-    Path("reports/profiling").mkdir(parents=True, exist_ok=True)
-    stats.dump_stats("reports/profiling/train_profile.prof")
-    with open("reports/profiling/train_profile.txt", "w") as f:
-        stats.stream = f
-        stats.print_stats(50)
+    # TODO: Revise this
+    # stats = pstats.Stats(profiler)
+    # stats.sort_stats("cumulative")
+    # Path("reports/profiling").mkdir(parents=True, exist_ok=True)
+    # stats.dump_stats("reports/profiling/train_profile.prof")
+    # with open("reports/profiling/train_profile.txt", "w") as f:
+    #     stats.stream = f
+    #     stats.print_stats(50)
 
     # Save model and tokenizer
     Path("models").mkdir(exist_ok=True)

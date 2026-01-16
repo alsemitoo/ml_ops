@@ -1,9 +1,33 @@
+"""Image-to-LaTeX model using ResNet encoder and Transformer decoder."""
 import torch
 import torch.nn as nn
 import torchvision.models as models
+from loguru import logger
 
 class Im2LatexModel(nn.Module):
-    def __init__(self, vocab_size, d_model=256, nhead=4, num_decoder_layers=3):
+    """Image-to-LaTeX sequence-to-sequence model.
+
+    Architecture:
+        - Encoder: ResNet-18 for visual feature extraction
+        - Decoder: Transformer decoder for LaTeX token generation
+        - Positional encoding: Learnable position embeddings for image patches
+    """
+
+    def __init__(
+        self,
+        vocab_size: int,
+        d_model: int = 256,
+        nhead: int = 4,
+        num_decoder_layers: int = 3,
+    ) -> None:
+        """Initialize the Image-to-LaTeX model.
+
+        Args:
+            vocab_size: Size of the LaTeX token vocabulary
+            d_model: Dimensionality of embeddings and hidden states (default: 256)
+            nhead: Number of attention heads in transformer (default: 4)
+            num_decoder_layers: Number of transformer decoder layers (default: 3)
+        """
         super().__init__()
         
         # --- 1. RESNET SURGERY (High Resolution Encoder) ---
