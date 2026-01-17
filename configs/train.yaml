@@ -4,7 +4,7 @@ preprocess:
   brightness: 0.2
   contrast: 0.2
 
-model: 
+model:
   vocab_size: null
   d_model: 64
   nhead: 2

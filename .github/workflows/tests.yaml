@@ -11,7 +11,8 @@ jobs:
     strategy:
       matrix:
         operating-system: ["ubuntu-latest", "windows-latest", "macos-latest"]
-        python-version: ["3.12", "3.11"]
+        python-version: ["3.11", "3.12", "3.13"]
+        torch-version: [2.5.1, 2.4.0]
 
     steps:
       - name: Checkout code
@@ -26,6 +27,7 @@ jobs:
       - name: Install dependencies
         run: |
           uv sync --locked --dev
+          uv pip install torch==${{ matrix.torch-version }} torchvision --index-url https://download.pytorch.org/whl/cpu
           uv tree
 
       - name: Run tests & coverage
