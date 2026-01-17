@@ -1,0 +1,58 @@
+         71307495 function calls (67116161 primitive calls) in 3376.128 seconds
+
+   Ordered by: cumulative time
+   List reduced from 1107 to 50 due to restriction <50>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+       10    7.034    0.703 3122.396  312.240 C:\Obsidian Vaults\Education\Magistrale\2nd year\January 3 weeks\Machine Learning Operations\ml_ops\src\ml_ops_project\train.py:115(train_epoch)
+    16700    0.375    0.000 1839.590    0.110 C:\Obsidian Vaults\Education\Magistrale\2nd year\January 3 weeks\Machine Learning Operations\ml_ops\.venv\Lib\site-packages\torch\amp\grad_scaler.py:360(step)
+    16700    0.142    0.000 1829.459    0.110 C:\Obsidian Vaults\Education\Magistrale\2nd year\January 3 weeks\Machine Learning Operations\ml_ops\.venv\Lib\site-packages\torch\amp\grad_scaler.py:348(_maybe_opt_step)
+  2895592 1820.420    0.001 1820.420    0.001 {method 'item' of 'torch._C.TensorBase' objects}
+    16704    0.088    0.000 1783.454    0.107 {built-in method builtins.sum}
+    33400    0.084    0.000 1783.365    0.053 C:\Obsidian Vaults\Education\Magistrale\2nd year\January 3 weeks\Machine Learning Operations\ml_ops\.venv\Lib\site-packages\torch\amp\grad_scaler.py:356(<genexpr>)
+1906320/40560    3.065    0.000 1211.512    0.030 C:\Obsidian Vaults\Education\Magistrale\2nd year\January 3 weeks\Machine Learning Operations\ml_ops\.venv\Lib\site-packages\torch\nn\modules\module.py:1772(_wrapped_call_impl)
+1906320/40560    5.689    0.000 1211.375    0.030 C:\Obsidian Vaults\Education\Magistrale\2nd year\January 3 weeks\Machine Learning Operations\ml_ops\.venv\Lib\site-packages\torch\nn\modules\module.py:1780(_call_impl)
+    20280    2.434    0.000 1208.471    0.060 C:\Obsidian Vaults\Education\Magistrale\2nd year\January 3 weeks\Machine Learning Operations\ml_ops\src\ml_ops_project\model.py:72(forward)
+   127785 1034.130    0.008 1034.135    0.008 {method 'to' of 'torch._C.TensorBase' objects}
+       10    0.986    0.099  252.332   25.233 C:\Obsidian Vaults\Education\Magistrale\2nd year\January 3 weeks\Machine Learning Operations\ml_ops\src\ml_ops_project\train.py:180(validate_epoch)
+    16700    0.192    0.000  195.651    0.012 C:\Obsidian Vaults\Education\Magistrale\2nd year\January 3 weeks\Machine Learning Operations\ml_ops\.venv\Lib\site-packages\torch\_tensor.py:575(backward)
+    16700    0.292    0.000  195.453    0.012 C:\Obsidian Vaults\Education\Magistrale\2nd year\January 3 weeks\Machine Learning Operations\ml_ops\.venv\Lib\site-packages\torch\autograd\__init__.py:252(backward)
+    16700    0.157    0.000  193.993    0.012 C:\Obsidian Vaults\Education\Magistrale\2nd year\January 3 weeks\Machine Learning Operations\ml_ops\.venv\Lib\site-packages\torch\autograd\graph.py:856(_engine_run_backward)
+    16700  193.792    0.012  193.792    0.012 {method 'run_backward' of 'torch._C._EngineBase' objects}
+162240/20280    0.843    0.000  116.533    0.006 C:\Obsidian Vaults\Education\Magistrale\2nd year\January 3 weeks\Machine Learning Operations\ml_ops\.venv\Lib\site-packages\torch\nn\modules\container.py:248(forward)
+   162240    6.802    0.000  102.688    0.001 C:\Obsidian Vaults\Education\Magistrale\2nd year\January 3 weeks\Machine Learning Operations\ml_ops\.venv\Lib\site-packages\torchvision\models\resnet.py:89(forward)
+    20280    0.495    0.000   64.546    0.003 C:\Obsidian Vaults\Education\Magistrale\2nd year\January 3 weeks\Machine Learning Operations\ml_ops\.venv\Lib\site-packages\torch\nn\modules\transformer.py:599(forward)
+    20280    2.869    0.000   55.748    0.003 C:\Obsidian Vaults\Education\Magistrale\2nd year\January 3 weeks\Machine Learning Operations\ml_ops\.venv\Lib\site-packages\torch\nn\modules\transformer.py:1089(forward)
+   425880    1.113    0.000   50.382    0.000 C:\Obsidian Vaults\Education\Magistrale\2nd year\January 3 weeks\Machine Learning Operations\ml_ops\.venv\Lib\site-packages\torch\nn\modules\conv.py:552(forward)
+   425880    0.791    0.000   48.854    0.000 C:\Obsidian Vaults\Education\Magistrale\2nd year\January 3 weeks\Machine Learning Operations\ml_ops\.venv\Lib\site-packages\torch\nn\modules\conv.py:534(_conv_forward)
+   425880   48.063    0.000   48.063    0.000 {built-in method torch.conv2d}
+    16694    0.542    0.000   45.861    0.003 C:\Obsidian Vaults\Education\Magistrale\2nd year\January 3 weeks\Machine Learning Operations\ml_ops\.venv\Lib\site-packages\torch\optim\optimizer.py:505(wrapper)
+    16694    0.275    0.000   42.792    0.003 C:\Obsidian Vaults\Education\Magistrale\2nd year\January 3 weeks\Machine Learning Operations\ml_ops\.venv\Lib\site-packages\torch\optim\optimizer.py:60(_use_grad)
+    16694    0.231    0.000   42.346    0.003 C:\Obsidian Vaults\Education\Magistrale\2nd year\January 3 weeks\Machine Learning Operations\ml_ops\.venv\Lib\site-packages\torch\optim\adam.py:214(step)
+   405600    3.454    0.000   41.039    0.000 C:\Obsidian Vaults\Education\Magistrale\2nd year\January 3 weeks\Machine Learning Operations\ml_ops\.venv\Lib\site-packages\torch\nn\modules\batchnorm.py:160(forward)
+    40560    1.087    0.000   35.398    0.001 C:\Obsidian Vaults\Education\Magistrale\2nd year\January 3 weeks\Machine Learning Operations\ml_ops\.venv\Lib\site-packages\torch\nn\modules\activation.py:1255(forward)
+    16694    0.077    0.000   34.828    0.002 C:\Obsidian Vaults\Education\Magistrale\2nd year\January 3 weeks\Machine Learning Operations\ml_ops\.venv\Lib\site-packages\torch\optim\optimizer.py:132(maybe_fallback)
+    16694    1.606    0.000   34.729    0.002 C:\Obsidian Vaults\Education\Magistrale\2nd year\January 3 weeks\Machine Learning Operations\ml_ops\.venv\Lib\site-packages\torch\optim\adam.py:902(adam)
+    40560    1.371    0.000   33.806    0.001 C:\Obsidian Vaults\Education\Magistrale\2nd year\January 3 weeks\Machine Learning Operations\ml_ops\.venv\Lib\site-packages\torch\nn\functional.py:6206(multi_head_attention_forward)
+    16694    0.692    0.000   30.119    0.002 C:\Obsidian Vaults\Education\Magistrale\2nd year\January 3 weeks\Machine Learning Operations\ml_ops\.venv\Lib\site-packages\torch\optim\adam.py:554(_multi_tensor_adam)
+       20    0.000    0.000   29.622    1.481 C:\Obsidian Vaults\Education\Magistrale\2nd year\January 3 weeks\Machine Learning Operations\ml_ops\.venv\Lib\site-packages\torch\utils\data\dataloader.py:487(__iter__)
+        2    0.000    0.000   29.592   14.796 C:\Obsidian Vaults\Education\Magistrale\2nd year\January 3 weeks\Machine Learning Operations\ml_ops\.venv\Lib\site-packages\torch\utils\data\dataloader.py:428(_get_iterator)
+        2    0.000    0.000   29.592   14.796 C:\Obsidian Vaults\Education\Magistrale\2nd year\January 3 weeks\Machine Learning Operations\ml_ops\.venv\Lib\site-packages\torch\utils\data\dataloader.py:1117(__init__)
+        8    0.000    0.000   29.576    3.697 C:\Users\longo\AppData\Roaming\uv\python\cpython-3.11.14-windows-x86_64-none\Lib\multiprocessing\process.py:110(start)
+        8    0.000    0.000   29.575    3.697 C:\Users\longo\AppData\Roaming\uv\python\cpython-3.11.14-windows-x86_64-none\Lib\multiprocessing\context.py:222(_Popen)
+        8    0.000    0.000   29.575    3.697 C:\Users\longo\AppData\Roaming\uv\python\cpython-3.11.14-windows-x86_64-none\Lib\multiprocessing\context.py:333(_Popen)
+        8    0.000    0.000   29.574    3.697 C:\Users\longo\AppData\Roaming\uv\python\cpython-3.11.14-windows-x86_64-none\Lib\multiprocessing\popen_spawn_win32.py:45(__init__)
+       16    0.030    0.002   29.528    1.846 C:\Users\longo\AppData\Roaming\uv\python\cpython-3.11.14-windows-x86_64-none\Lib\multiprocessing\reduction.py:58(dump)
+       16   29.497    1.844   29.498    1.844 {method 'dump' of '_pickle.Pickler' objects}
+   162240   28.304    0.000   28.304    0.000 {built-in method torch._C._nn.linear}
+   405600    1.702    0.000   27.326    0.000 C:\Obsidian Vaults\Education\Magistrale\2nd year\January 3 weeks\Machine Learning Operations\ml_ops\.venv\Lib\site-packages\torch\nn\functional.py:2811(batch_norm)
+   405600   23.762    0.000   23.762    0.000 {built-in method torch.batch_norm}
+    20280    0.201    0.000   20.224    0.001 C:\Obsidian Vaults\Education\Magistrale\2nd year\January 3 weeks\Machine Learning Operations\ml_ops\.venv\Lib\site-packages\torch\nn\modules\transformer.py:1158(_sa_block)
+    40560    1.455    0.000   19.873    0.000 C:\Obsidian Vaults\Education\Magistrale\2nd year\January 3 weeks\Machine Learning Operations\ml_ops\.venv\Lib\site-packages\torch\nn\functional.py:5785(_in_projection_packed)
+    20280    0.203    0.000   18.622    0.001 C:\Obsidian Vaults\Education\Magistrale\2nd year\January 3 weeks\Machine Learning Operations\ml_ops\.venv\Lib\site-packages\torch\nn\modules\transformer.py:1177(_mha_block)
+   365040    0.513    0.000   10.143    0.000 C:\Obsidian Vaults\Education\Magistrale\2nd year\January 3 weeks\Machine Learning Operations\ml_ops\.venv\Lib\site-packages\torch\nn\functional.py:1710(relu)
+   344760    0.387    0.000    9.723    0.000 C:\Obsidian Vaults\Education\Magistrale\2nd year\January 3 weeks\Machine Learning Operations\ml_ops\.venv\Lib\site-packages\torch\nn\modules\activation.py:139(forward)
+    16700    0.569    0.000    9.643    0.001 C:\Obsidian Vaults\Education\Magistrale\2nd year\January 3 weeks\Machine Learning Operations\ml_ops\.venv\Lib\site-packages\torch\amp\grad_scaler.py:288(unscale_)
+    20280    0.305    0.000    9.248    0.000 C:\Obsidian Vaults\Education\Magistrale\2nd year\January 3 weeks\Machine Learning Operations\ml_ops\.venv\Lib\site-packages\torch\nn\modules\transformer.py:1197(_ff_block)
+
+
