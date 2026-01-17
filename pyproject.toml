@@ -28,6 +28,7 @@ dependencies = [
     "loguru>=0.7.3",
     "matplotlib>=3.10.8",
     "pillow>=12.1.0",
+    "pytest>=8.3.4",
     "torch==2.6.0",
     "torchvision>=0.21.0",
     "typer==0.15.1",
@@ -66,7 +67,7 @@ line-length = 120
 lint.select = ["I"]
 
 [tool.coverage.run]
-omit = ["tests/*"]
+omit = ["tests/*", "tmp/*"]
 
 [[tool.mypy.overrides]]
 module = ["torchvision", "torchvision.*"]

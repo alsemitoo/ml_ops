@@ -1,4 +1,5 @@
 """Training script for Image-to-LaTeX model."""
+
 import cProfile
 import pstats
 from pathlib import Path

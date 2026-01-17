@@ -1,0 +1,7 @@
+download:
+  name: default
+  split: train
+  output_path: data/raw
+dataset:
+  data_path: data/raw/default_train
+  transform: null
