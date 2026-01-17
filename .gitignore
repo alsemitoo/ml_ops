@@ -177,6 +177,7 @@ cython_debug/
 #.idea/
 
 
+data/
+outputs/
 .ruff_cache/
-/data
 .dvc/
