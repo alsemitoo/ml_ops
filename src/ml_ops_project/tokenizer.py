@@ -3,6 +3,7 @@
 This module provides functionality to build a vocabulary from LaTeX labels
 by extracting all unique tokens separated by spaces.
 """
+
 import json
 from pathlib import Path
 

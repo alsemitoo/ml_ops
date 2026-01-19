@@ -57,6 +57,10 @@ explicit = true
 line-length = 120
 lint.select = ["I"]
 
+[tool.ruff.lint.isort]
+known-first-party = ["ml_ops_project"]
+section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
+
 [tool.coverage.run]
 omit = ["tests/*"]
 

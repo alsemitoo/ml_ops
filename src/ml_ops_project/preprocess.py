@@ -1,4 +1,5 @@
 """Preprocessing transforms for LaTeX OCR images."""
+
 from loguru import logger
 from PIL import Image
 from torchvision import transforms
