@@ -1,5 +1,3 @@
-## Straight from teacher
-
 FROM python:3.11-slim
 
 RUN apt update && \
@@ -10,11 +8,19 @@ RUN mkdir /app
 
 WORKDIR /app
 
-COPY requirements_frontend.txt /app/requirements_frontend.txt
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+
+COPY uv.lock /app/uv.lock
+COPY pyproject.toml /app/pyproject.toml
+
+RUN uv sync --frozen --no-install-project --no-dev
+
+COPY src /app/src
+COPY configs /app/configs/
+COPY README.md /app/README.md
+COPY LICENSE /app/LICENSE
 COPY frontend.py /app/frontend.py
 
-RUN --mount=type=cache,target=/root/.cache/pip pip install -r requirements_frontend.txt
+EXPOSE 8501
 
-EXPOSE $PORT
-
-ENTRYPOINT ["streamlit", "run", "frontend.py", "--server.port", "$PORT", "--server.address=0.0.0.0"]
+ENTRYPOINT ["uv", "run","streamlit", "run", "frontend.py", "--server.port", "8501", "--server.address=0.0.0.0", "--server.headless=true", "--browser.serverAddress=localhost"]
