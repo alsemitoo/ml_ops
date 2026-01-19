@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 
 import pytest
+
 from ml_ops_project.tokenizer import LaTeXTokenizer
 
 

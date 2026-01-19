@@ -54,5 +54,3 @@
    344760    0.387    0.000    9.723    0.000 C:\Obsidian Vaults\Education\Magistrale\2nd year\January 3 weeks\Machine Learning Operations\ml_ops\.venv\Lib\site-packages\torch\nn\modules\activation.py:139(forward)
     16700    0.569    0.000    9.643    0.001 C:\Obsidian Vaults\Education\Magistrale\2nd year\January 3 weeks\Machine Learning Operations\ml_ops\.venv\Lib\site-packages\torch\amp\grad_scaler.py:288(unscale_)
     20280    0.305    0.000    9.248    0.000 C:\Obsidian Vaults\Education\Magistrale\2nd year\January 3 weeks\Machine Learning Operations\ml_ops\.venv\Lib\site-packages\torch\nn\modules\transformer.py:1197(_ff_block)
-
-

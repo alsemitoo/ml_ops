@@ -5,10 +5,11 @@ from pathlib import Path
 
 import pytest
 import torch
+from PIL import Image
+
 from ml_ops_project import data as data_module
 from ml_ops_project.data import MyDataset
 from ml_ops_project.tokenizer import LaTeXTokenizer
-from PIL import Image
 
 
 # -------- Fixtures --------
