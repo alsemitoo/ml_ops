@@ -24,3 +24,6 @@ COPY frontend.py /app/frontend.py
 EXPOSE 8501
 
 ENTRYPOINT ["uv", "run","streamlit", "run", "frontend.py", "--server.port", "8501", "--server.address=0.0.0.0", "--server.headless=true", "--browser.serverAddress=localhost"]
+
+# docker build -f dockerfiles/frontend.dockerfile -t frontend:latest .
+# docker run --rm -p 8501:8501 frontend:latest
