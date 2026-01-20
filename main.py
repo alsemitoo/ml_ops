@@ -2,6 +2,7 @@ import io
 from contextlib import asynccontextmanager
 from http import HTTPStatus
 from pathlib import Path
+from typing import Any
 
 import torch
 from fastapi import FastAPI, File, UploadFile
@@ -16,7 +17,7 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 MODEL_PATH = Path("models/model.pth")
 VOCAB_PATH = Path("models/vocab.pt")
 
-model_artifacts = {}
+model_artifacts: dict[str, Any] = {}
 
 
 @asynccontextmanager
@@ -32,8 +33,7 @@ async def lifespan(app: FastAPI):
     vocab = torch.load(VOCAB_PATH, map_location=DEVICE)
     tokenizer = LaTeXTokenizer()
     tokenizer.vocab = vocab
-    tokenizer.token_to_id = vocab
-    tokenizer.id_to_token = {v: k for k, v in vocab.items()}
+    tokenizer.idx_to_token = {v: k for k, v in vocab.items()}
 
     model_artifacts["tokenizer"] = tokenizer
 
@@ -78,8 +78,8 @@ app = FastAPI(lifespan=lifespan)
 def beam_search_prediction(model, image, tokenizer, beam_width=3, max_len=150):
     device = next(model.parameters()).device
 
-    sos_id = tokenizer.token_to_id.get("<START>", tokenizer.token_to_id.get("<SOS>", 1))
-    eos_id = tokenizer.token_to_id.get("<END>", tokenizer.token_to_id.get("<EOS>", 2))
+    sos_id = tokenizer.vocab.get("<START>", tokenizer.vocab.get("<SOS>", 1))
+    eos_id = tokenizer.vocab.get("<END>", tokenizer.vocab.get("<EOS>", 2))
 
     image = image.unsqueeze(0).to(device)
 
@@ -116,7 +116,7 @@ def beam_search_prediction(model, image, tokenizer, beam_width=3, max_len=150):
     if len(best_seq) > 0 and best_seq[-1] == eos_id:
         best_seq = best_seq[:-1]
 
-    return " ".join([tokenizer.id_to_token.get(t, "<UNK>") for t in best_seq])
+    return " ".join([tokenizer.idx_to_token.get(t, "<UNK>") for t in best_seq])
 
 
 @app.get("/")
