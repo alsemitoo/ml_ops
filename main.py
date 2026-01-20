@@ -4,23 +4,18 @@ from http import HTTPStatus
 from pathlib import Path
 
 import torch
-import torch.nn as nn
 from fastapi import FastAPI, File, UploadFile
-
-# Import your project modules
-# Assumes your project is installed or in the python path
-from ml_ops_project.model import Im2LatexModel
-from ml_ops_project.preprocess import FormulaResizePad
-from ml_ops_project.tokenizer import LaTeXTokenizer
 from PIL import Image
 from torchvision import transforms
 
-# Define constants
+from ml_ops_project.model import Im2LatexModel
+from ml_ops_project.preprocess import FormulaResizePad
+from ml_ops_project.tokenizer import LaTeXTokenizer
+
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 MODEL_PATH = Path("models/model.pth")
 VOCAB_PATH = Path("models/vocab.pt")
 
-# Global variables to hold the model and artifacts
 model_artifacts = {}
 
 
@@ -45,15 +40,12 @@ async def lifespan(app: FastAPI):
     # 2. LOAD MODEL
     vocab_size = len(tokenizer.vocab)
 
-    # --- FIX STARTS HERE ---
-    # We update these parameters to match the shapes seen in your RuntimeError
     model = Im2LatexModel(
         vocab_size=vocab_size,
-        d_model=64,  # CHANGED: 256 -> 64 (Matches checkpoint shape)
-        nhead=4,  # Kept as 4 (64 is divisible by 4, so this is valid)
-        num_decoder_layers=1,  # CHANGED: 3 -> 1 (Matches missing keys for layers 1 & 2)
+        d_model=64,
+        nhead=4,
+        num_decoder_layers=1,
     )
-    # --- FIX ENDS HERE ---
 
     if not MODEL_PATH.exists():
         raise FileNotFoundError(f"Model weights not found at {MODEL_PATH}")
@@ -76,7 +68,6 @@ async def lifespan(app: FastAPI):
     print(f"Model loaded on {DEVICE}")
     yield
 
-    # Clean up
     model_artifacts.clear()
     print("Model unloaded")
 
@@ -84,7 +75,6 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 
-# --- INFERENCE FUNCTION (Beam Search) ---
 def beam_search_prediction(model, image, tokenizer, beam_width=3, max_len=150):
     device = next(model.parameters()).device
 
@@ -121,13 +111,11 @@ def beam_search_prediction(model, image, tokenizer, beam_width=3, max_len=150):
     if isinstance(best_seq, int):
         best_seq = [best_seq]
 
-    # Clean SOS/EOS
     if len(best_seq) > 0 and best_seq[0] == sos_id:
         best_seq = best_seq[1:]
     if len(best_seq) > 0 and best_seq[-1] == eos_id:
         best_seq = best_seq[:-1]
 
-    # Manual Decode
     return " ".join([tokenizer.id_to_token.get(t, "<UNK>") for t in best_seq])
 
 
