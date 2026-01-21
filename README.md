@@ -74,7 +74,7 @@ will check the repositories and the code to verify your answers.
 * [X] Add caching and multi-os/python/pytorch testing to your continuous integration (M17)
 * [X] Add a linting step to your continuous integration (M17)
 * [X] Add pre-commit hooks to your version control setup (M18)
-* [ ] Add a continues workflow that triggers when data changes (M19)
+* [X] Add a continues workflow that triggers when data changes (M19)
 * [ ] Add a continues workflow that triggers when changes to the model registry is made (M19)
 * [X] Create a data storage in GCP Bucket for your data and link this with your data version control setup (M21)
 * [X] Create a trigger workflow for automatically building your docker images (M21)

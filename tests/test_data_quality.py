@@ -11,7 +11,7 @@ def real_data_path() -> Path:
     """Path to actual data pulled via DVC."""
     data_path = Path("data/raw/default_train")
     if not data_path.exists():
-        pytest.skip("Data not available - run 'dvc pull' first")
+        pytest.skip("Data not available")
     return data_path
 
 
