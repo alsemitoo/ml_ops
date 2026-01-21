@@ -71,8 +71,8 @@ class DummyModel(nn.Module):
         return torch.randn(batch_size, seq_len, vocab_size, requires_grad=True)
 
 
-@patch("torch.backends.mps.is_available", return_value=False)
-def test_train_epoch_smoke(mock_mps):  # 2. Add the mock_mps argument
+@patch("ml_ops_project.train.DEVICE", "cpu")
+def test_train_epoch_smoke(mock_device):
     vocab_size = 10
     batch_size = 2
     seq_len = 5
