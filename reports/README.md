@@ -121,7 +121,7 @@ will check the repositories and the code to verify your answers.
 ### Question 1
 > **Enter the group number you signed up on <learn.inside.dtu.dk>**
 >
-> Answer: 
+> Answer:
 
 Group 46
 
@@ -170,6 +170,11 @@ s242765, ...
 
 --- question 4 fill here ---
 
+We managed all project dependencies using `uv`, which let us keep everything clean and declarative in a single place: `pyproject.toml`. This file defines both our main dependencies and our development tools, so there is no guessing about versions. Whenever we needed a new package, we added it using command, fx. `uv add <package>`. This automatically updated the configuration and made sure special cases were handled correctly. The exact resolved versions are stored in `uv.lock`, so everyone always installs the same dependency versions.
+
+When someone new joins the team, getting the exact same environment is simple. First they install Python 3.11+ and `uv`. Then they can clone the repository and run `uv sync`. This reads the project file and installs the exact versions everyone else is using. No manual `pip install` steps are needed. If they want the same code quality checks, they can also run `uv run pre-commit install` to enable the same Git hooks. After that, their setup matches the rest of the team perfectly.
+
+
 ### Question 5
 
 > **We expect that you initialized your project using the cookiecutter template. Explain the overall structure of your**
@@ -186,6 +191,10 @@ s242765, ...
 
 --- question 5 fill here ---
 
+We set up our project based on cookiecutter template for MLOps at DTU and mostly stuck to their structure. We mainly filled in the config files in `configs/` using Hydra and set up the complete machine learning pipeline in the `src/ml_ops_project`. This includes modules for data loading, preprocessing, tokenization, model definition, training, evaluation, and a basic FastAPI API stub. We kept out tests in `tests/`, where there was one test for each module, for example, `test_data.py`.
+
+We added Docker support for all stages in `dockerfiles/` (api/data/train and a small frontend image), trained models are kept in `models/`, while data is versioned with DVC through `data.dvc` instead of a versioned `data/` folder. Our CI pipeline in `.github/workflows` is more advanced than the default, including linting, testing, pre-commit auto-updates, and Docker builds. We added `main.py` and `frontend.py` as entry points. In comparison to a basic template, we no longer make use of `notebooks/`, nor emphasize `docs/`, but rather use the exam report in `reports/`.
+
 ### Question 6
 
 > **Did you implement any rules for code quality and format? What about typing and documentation? Additionally,**
@@ -200,6 +209,10 @@ s242765, ...
 > Answer:
 
 --- question 6 fill here ---
+
+We set clear rules for code quality and coding style early on. We used `ruff` for both linting and formatting, to remain the code consistent throughout. The code will be checked automatically in our GitHub Actions pipeline with `ruff check --fix` and `ruff format`, which ensures that the code not following the guidelines will not pass CI. For typing, we used `mypy` to check our static type hints. This made sure we did not have type errors. Finally, we added docstring to all functions and classes.
+
+These were even more important principles as the project increased in size. When multiple developers work on the same codebase, it is much simple to understand if everything is consistent. Linting ensures that minor issues before becoming major bugs can be eliminated, while code style ensures that there is no disagreement about code style. Type hints ensure that programmers understand how data is flowing, while documentation ensures that new programmers can easily join and understand.
 
 ## Version control
 

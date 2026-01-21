@@ -113,49 +113,55 @@ will check the repositories and the code to verify your answers.
 
 ## Project structure
 
-The directory structure of the project looks like this:
+The directory structure of the project looks like this (only keeping folders/files we actively use):
 ```txt
+├── AGENTS.md
 ├── .github/                  # Github actions and dependabot
 │   ├── dependabot.yaml
 │   └── workflows/
+│       └── docker_build.yaml
+│       └── linting.yaml
+│       └── pre-commit-update.yaml
 │       └── tests.yaml
-├── configs/                  # Configuration files
-├── data/                     # Data directory
-│   ├── processed
-│   └── raw
-├── dockerfiles/              # Dockerfiles
-│   ├── api.Dockerfile
-│   └── train.Dockerfile
-├── docs/                     # Documentation
-│   ├── mkdocs.yml
-│   └── source/
-│       └── index.md
-├── models/                   # Trained models
-├── notebooks/                # Jupyter notebooks
-├── reports/                  # Reports
-│   └── figures/
-├── src/                      # Source code
-│   ├── project_name/
-│   │   ├── __init__.py
-│   │   ├── api.py
-│   │   ├── data.py
-│   │   ├── evaluate.py
-│   │   ├── models.py
-│   │   ├── train.py
-│   │   └── visualize.py
-└── tests/                    # Tests
+├── configs/                  # Hydra configs (data, preprocess, train)
+│   ├── data.yaml
+│   ├── preprocess.yaml
+│   └── train.yaml
+├── data.dvc                  # DVC tracking for data
+├── dockerfiles/              # Dockerfiles for api/data/train
+│   ├── api.dockerfile
+│   ├── data.dockerfile
+│   └── train.dockerfile
+│   └── fronend.dockerfile
+├── models/                   # Trained weights and vocab
+├── reports/                  # Exam report, figures, profiling
+│   ├── README.md
+│   ├── report.py
+│   ├── figures/
+│   └── profiling/
+├── src/
+│   └── ml_ops_project/
+│       ├── __init__.py
+│       ├── api.py
+│       ├── data.py
+│       ├── evaluate.py
+│       ├── model.py
+│       ├── preprocess.py
+│       ├── tokenizer.py
+│       ├── train.py
+│       └── visualize.py
+├── tests/
 │   ├── __init__.py
 │   ├── test_api.py
 │   ├── test_data.py
-│   └── test_model.py
-├── .gitignore
-├── .pre-commit-config.yaml
+│   ├── test_model.py
+│   └── test_tokenizer.py
 ├── LICENSE
-├── pyproject.toml            # Python project file
-├── README.md                 # Project README
-├── requirements.txt          # Project requirements
-├── requirements_dev.txt      # Development requirements
-└── tasks.py                  # Project tasks
+├── main.py
+├── frontend.py
+├── pyproject.toml            # Python project file (uv)
+├── README.md
+└── tasks.py
 ```
 
 
