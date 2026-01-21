@@ -64,6 +64,10 @@ section-order = ["future", "standard-library", "third-party", "first-party", "lo
 [tool.coverage.run]
 omit = ["tests/*"]
 
+[tool.coverage.report]
+show_missing = true
+ignore_errors = true
+
 [[tool.mypy.overrides]]
 module = ["torchvision", "torchvision.*"]
 ignore_missing_imports = true

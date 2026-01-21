@@ -40,9 +40,7 @@ def mock_backbone_model(model_params):
 
         # FIX 1: Change output channels from 256 -> 512
         # The model's feature_adapter expects 512 input channels
-        model.backbone = nn.Sequential(
-            nn.Conv2d(3, 512, kernel_size=3, stride=16, padding=1)
-        )
+        model.backbone = nn.Sequential(nn.Conv2d(3, 512, kernel_size=3, stride=16, padding=1))
         return model
 
 
@@ -78,7 +76,7 @@ def test_model_forward_shape(mock_backbone_model, batch_size, seq_len, model_par
 def test_causal_mask_structure():
     """Verify the causal mask is strictly upper triangular with -inf."""
     # FIX 2: Instantiate the model to access the method, and use correct name (no leading underscore)
-    model = Im2LatexModel(vocab_size=10) 
+    model = Im2LatexModel(vocab_size=10)
     mask = model.generate_square_subsequent_mask(4)
 
     # Shape check

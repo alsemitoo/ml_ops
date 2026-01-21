@@ -88,7 +88,7 @@ def test_train_epoch_smoke(mock_mps):  # 2. Add the mock_mps argument
 
     # Mock dataloader as a simple list
     dataloader = [(dummy_images, dummy_labels)]
-    
+
     # Create a Mock Scaler
     mock_scaler = MagicMock()
 
@@ -101,7 +101,7 @@ def test_train_epoch_smoke(mock_mps):  # 2. Add the mock_mps argument
         vocab_size=vocab_size,
         pad_idx=0,
         epoch=0,
-        scaler=mock_scaler, 
+        scaler=mock_scaler,
     )
 
     # Assertions
@@ -109,7 +109,7 @@ def test_train_epoch_smoke(mock_mps):  # 2. Add the mock_mps argument
     assert isinstance(loss[0], float)
     assert len(acc) == 1
     assert 0.0 <= acc[0] <= 1.0
-    
+
     # Verify scaler was called
     assert mock_scaler.scale.called
     assert mock_scaler.step.called
