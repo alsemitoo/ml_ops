@@ -72,7 +72,7 @@ class DummyModel(nn.Module):
 
 
 @patch("ml_ops_project.train.DEVICE", "cpu")
-def test_train_epoch_smoke(mock_device):
+def test_train_epoch_smoke():
     vocab_size = 10
     batch_size = 2
     seq_len = 5
