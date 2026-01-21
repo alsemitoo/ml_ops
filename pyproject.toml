@@ -86,3 +86,10 @@ environments = [
 [project.scripts]
 download-data = "ml_ops_project.data:download_data"
 train-model = "ml_ops_project.train:train"
+
+[tool.pytest.ini_options]
+markers = [
+    "full_dataset: marks tests running with full dataset (deselect with '-m \"not full_dataset\"')",
+    "serial",
+]
+addopts = "-m 'not full_dataset'"
