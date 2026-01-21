@@ -118,3 +118,30 @@ def test_error_on_wrong_image_channels(mock_backbone_model):
 
     # The error usually mentions channel mismatch
     assert "Expected" in str(excinfo.value) or "channels" in str(excinfo.value)
+
+
+def test_pos_encoding_error_on_large_images(model_params):
+    """Test that ValueError is raised when feature map exceeds positional encoding limits."""
+    # Create model with normal (non-mocked) backbone
+    with patch("torchvision.models.resnet18") as mock_resnet_fn:
+        mock_resnet_fn.return_value = get_mock_resnet()
+        model = Im2LatexModel(**model_params)
+
+        # Replace backbone with a simple conv that produces large feature maps
+        # To exceed max_h=50, we need H_feat > 50
+        # To exceed max_w=300, we need W_feat > 300
+        # Use stride=4 for mild downsampling: 512x2560 -> 128x640 feature map
+        model.backbone = nn.Sequential(nn.Conv2d(3, 512, kernel_size=3, stride=4, padding=1))
+
+    # Create large image: 512x2560 pixels
+    # After stride=4 downsampling: ~128x640 feature map (exceeds max_w=300)
+    large_image = torch.randn(1, 3, 512, 2560)
+    tgt_text = torch.randint(0, model_params["vocab_size"], (1, 10))
+
+    # Forward pass should raise ValueError
+    with pytest.raises(ValueError) as excinfo:
+        _ = model(large_image, tgt_text)
+
+    # Verify error message
+    assert "exceeds positional encoding limits" in str(excinfo.value)
+    assert "Please resize input images" in str(excinfo.value)
