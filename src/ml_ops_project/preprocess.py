@@ -21,7 +21,7 @@ class FormulaResizePad:
         """
         self.h = target_height
         self.w = max_width
-        logger.debug(f"FormulaResizePad initialized: target_height={target_height}, max_width={max_width}")
+        # logger.debug(f"FormulaResizePad initialized: target_height={target_height}, max_width={max_width}")
 
     def __call__(self, img: Image.Image) -> Image.Image:
         """Apply resize and padding to image.
@@ -40,7 +40,7 @@ class FormulaResizePad:
 
         # 2. LIMITING - Clamp width if it exceeds max_width
         if new_w > self.w:
-            logger.debug(f"Image width {new_w} exceeds max_width {self.w}, clamping...")
+            # logger.debug(f"Image width {new_w} exceeds max_width {self.w}, clamping...")
             new_w = self.w
 
         # Resize
