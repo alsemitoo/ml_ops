@@ -53,17 +53,9 @@ jobs:
           gsutil ls gs://ml_ops_data_bucket_46/ || echo "GCP bucket access failed"
           gsutil ls gs://ml_ops_data_bucket_46/files/ || echo "Files directory not accessible"
 
-      - name: Cache DVC
-        uses: actions/cache@v4
-        with:
-          path: .dvc/cache
-          key: dvc-${{ hashFiles('**/*.dvc') }}
-          restore-keys: |
-            dvc-
-
       - name: Pull data from DVC
         run: |
-          uv run dvc pull --verbose --jobs 8
+          uv run dvc pull --no-cache-run -v --jobs 8
         timeout-minutes: 60
 
       - name: Run data quality tests
