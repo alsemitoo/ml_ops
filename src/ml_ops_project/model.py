@@ -113,7 +113,10 @@ class Im2LatexModel(nn.Module):
         # We generate the encoding based on the CURRENT feature map size
         # giving us flexibility if image sizes vary slightly.
         if H > self.max_h or W > self.max_w:
-            print(f"Warning: Image feature map ({H}x{W}) exceeds pos encoding limits ({self.max_h}x{self.max_w})")
+            raise ValueError(
+                f"Image feature map size ({H}x{W}) exceeds positional encoding limits "
+                f"({self.max_h}x{self.max_w}). Please resize input images or increase max_h/max_w."
+            )
 
         pos_enc = self.get_2d_pos_encoding(H, W, images.device)
 
