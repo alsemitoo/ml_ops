@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 import torch
 
-from ml_ops_project.train import collate_fn
+from ml_ops_project.train import collate_fn, validate_epoch
 
 
 @pytest.mark.parametrize("batch_size", [2, 4])
@@ -114,3 +114,61 @@ def test_train_epoch_smoke():
     assert mock_scaler.scale.called
     assert mock_scaler.step.called
     assert mock_scaler.update.called
+
+
+@patch("ml_ops_project.train.DEVICE", "cpu")
+def test_validate_epoch_smoke():
+    """Validate that validate_epoch computes loss and accuracy for one batch."""
+    vocab_size = 10
+    pad_idx = 0
+    batch_size = 2
+    seq_len = 5
+
+    model = DummyModel(vocab_size)
+    loss_fn = nn.CrossEntropyLoss(ignore_index=pad_idx)
+
+    # Single-batch dataloader matching expected shapes
+    images = torch.randn(batch_size, 1, 28, 28)
+    labels = torch.randint(0, vocab_size, (batch_size, seq_len + 1))
+    dataloader = [(images, labels)]
+
+    val_loss, val_acc = validate_epoch(
+        model=model,
+        val_dataloader=dataloader,
+        loss_fn=loss_fn,
+        vocab_size=vocab_size,
+        pad_idx=pad_idx,
+    )
+
+    assert len(val_loss) == 1
+    assert isinstance(val_loss[0], float)
+    assert len(val_acc) == 1
+    assert 0.0 <= val_acc[0] <= 1.0
+
+
+@patch("ml_ops_project.train.DEVICE", "cpu")
+@pytest.mark.xfail(strict=True, reason="Demonstration: this assertion is intentionally incorrect")
+def test_validate_epoch_expected_fail():
+    """Intentionally failing test to demonstrate xfail behavior."""
+    vocab_size = 10
+    pad_idx = 0
+    batch_size = 2
+    seq_len = 5
+
+    model = DummyModel(vocab_size)
+    loss_fn = nn.CrossEntropyLoss(ignore_index=pad_idx)
+
+    images = torch.randn(batch_size, 1, 28, 28)
+    labels = torch.randint(0, vocab_size, (batch_size, seq_len + 1))
+    dataloader = [(images, labels)]
+
+    val_loss, val_acc = validate_epoch(
+        model=model,
+        val_dataloader=dataloader,
+        loss_fn=loss_fn,
+        vocab_size=vocab_size,
+        pad_idx=pad_idx,
+    )
+
+    # Wrong expectation: we only provided one batch, but we assert two
+    assert len(val_loss) == 2
