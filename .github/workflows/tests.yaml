@@ -31,6 +31,8 @@ jobs:
           uv tree
 
       - name: Run tests & coverage
+        env:
+          UV_HTTP_TIMEOUT: 1200
         run: |
           uv run coverage run -m pytest tests/
           uv run coverage report -m

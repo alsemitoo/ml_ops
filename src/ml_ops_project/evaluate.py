@@ -130,7 +130,7 @@ def beam_search_prediction(model, image, tokenizer, beam_width=3, max_len=150):
         tokens = tokens[:-1]
 
     # FIX 3: MANUAL DECODE (Bypass tokenizer.decode)
-    # We use the id_to_token map directly.
+    # We use the idx_to_token map directly.
     decoded_strings = [tokenizer.idx_to_token.get(t, "<UNK>") for t in tokens]
 
     return decoded_strings  # Returns list of strings e.g. ['\hat', '{', 'a', '}']
@@ -180,12 +180,12 @@ def test(cfg: DictConfig):
 
     vocab = torch.load(vocab_path)
     # Manual Inversion to ensure we have ID -> Token
-    id_to_token = {v: k for k, v in vocab.items()}
+    idx_to_token = {v: k for k, v in vocab.items()}
 
     # Initialize Tokenizer
     tokenizer = LaTeXTokenizer()
     tokenizer.vocab = vocab
-    tokenizer.idx_to_token = id_to_token
+    tokenizer.idx_to_token = idx_to_token
 
     pad_idx = tokenizer.get_pad_idx()
     vocab_size = len(tokenizer.vocab)
@@ -235,11 +235,11 @@ def test(cfg: DictConfig):
         image, label_ids = test_dataset[idx]
 
         # Ground Truth Manual Decode
-        gt_tokens = [id_to_token.get(i, "<UNK>") for i in label_ids.tolist()]
+        gt_tokens = [idx_to_token.get(i, "<UNK>") for i in label_ids.tolist()]
         gt_str = " ".join([t for t in gt_tokens if t not in ["<PAD>", "<START>", "<END>"]])
 
         # Prediction Manual Decode
-        # Pass id_to_token explicitly!
+        # Pass idx_to_token explicitly!
         pred_tokens = beam_search_prediction(model, image, tokenizer)
         pred_str = " ".join(pred_tokens)
 

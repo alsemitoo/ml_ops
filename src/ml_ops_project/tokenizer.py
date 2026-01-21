@@ -89,7 +89,7 @@ class LaTeXTokenizer:
         if add_special_tokens:
             indices.append(self.vocab.get(self.end_token, self.vocab[self.unk_token]))
 
-        logger.debug(f"Encoded text with {len(indices)} tokens (special_tokens={add_special_tokens})")
+        # logger.debug(f"Encoded text with {len(indices)} tokens (special_tokens={add_special_tokens})")
         return indices
 
     def decode(self, indices: list[int], skip_special_tokens: bool = True) -> str:
@@ -109,7 +109,7 @@ class LaTeXTokenizer:
                 continue
             tokens.append(token)
 
-        logger.debug(f"Decoded {len(indices)} indices to {len(tokens)} tokens (skip_special={skip_special_tokens})")
+        # logger.debug(f"Decoded {len(indices)} indices to {len(tokens)} tokens (skip_special={skip_special_tokens})")
         return " ".join(tokens)
 
     def get_pad_idx(self) -> int:
