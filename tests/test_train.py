@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 import torch
@@ -71,7 +71,8 @@ class DummyModel(nn.Module):
         return torch.randn(batch_size, seq_len, vocab_size, requires_grad=True)
 
 
-def test_train_epoch_smoke():
+@patch("torch.backends.mps.is_available", return_value=False)
+def test_train_epoch_smoke(mock_mps):  # 2. Add the mock_mps argument
     vocab_size = 10
     batch_size = 2
     seq_len = 5
@@ -88,7 +89,7 @@ def test_train_epoch_smoke():
     # Mock dataloader as a simple list
     dataloader = [(dummy_images, dummy_labels)]
     
-    # FIX 3: Create a Mock Scaler
+    # Create a Mock Scaler
     mock_scaler = MagicMock()
 
     # Run the function
@@ -100,7 +101,7 @@ def test_train_epoch_smoke():
         vocab_size=vocab_size,
         pad_idx=0,
         epoch=0,
-        scaler=mock_scaler, # Pass the mock scaler here
+        scaler=mock_scaler, 
     )
 
     # Assertions
@@ -109,7 +110,7 @@ def test_train_epoch_smoke():
     assert len(acc) == 1
     assert 0.0 <= acc[0] <= 1.0
     
-    # Optional: Verify scaler was called
+    # Verify scaler was called
     assert mock_scaler.scale.called
     assert mock_scaler.step.called
     assert mock_scaler.update.called
