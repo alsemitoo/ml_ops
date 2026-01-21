@@ -34,6 +34,9 @@ dependencies = [
     "torchvision>=0.20.1",
     "typer==0.15.1",
     "uvicorn==0.34.0",
+    "evidently>=0.7.20",
+    "scikit-learn>=1.8.0",
+    "pandas>=2.3.3",
 ]
 
 [dependency-groups]
@@ -87,3 +90,4 @@ environments = [
 [project.scripts]
 download-data = "ml_ops_project.data:download_data"
 train-model = "ml_ops_project.train:train"
+detect-drift = "ml_ops_project.data_drift:main"
