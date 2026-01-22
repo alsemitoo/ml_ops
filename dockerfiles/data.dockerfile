@@ -17,3 +17,4 @@ VOLUME ["/data"]
 ENTRYPOINT ["uv", "run", "python", "src/ml_ops_project/data.py"]
 
 # docker run -v ${PWD}/data:/data ml-ops-data:latest
+# docker run -v "%cd%\data":/data ml-ops-data:latest
