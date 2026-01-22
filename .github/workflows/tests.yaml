@@ -2,9 +2,9 @@ name: Unit Tests
 
 on:
   push:
-    branches: [main]
+    branches: [main, feature/ci-data-changes]
   pull_request:
-    branches: [main]
+    branches: []
 jobs:
   test:
     runs-on: ${{ matrix.operating-system }}
@@ -39,7 +39,7 @@ jobs:
 
   build:
     needs: test
-    if: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/feature/ci-data-changes') }}
+    if: ${{ github.event_name == 'push' }}
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
