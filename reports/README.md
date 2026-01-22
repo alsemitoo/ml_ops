@@ -168,8 +168,6 @@ s242765, ...
 >
 > Answer:
 
---- question 4 fill here ---
-
 We managed all project dependencies using `uv`, which let us keep everything clean and declarative in a single place: `pyproject.toml`. This file defines both our main dependencies and our development tools, so there is no guessing about versions. Whenever we needed a new package, we added it using command, fx. `uv add <package>`. This automatically updated the configuration and made sure special cases were handled correctly. The exact resolved versions are stored in `uv.lock`, so everyone always installs the same dependency versions.
 
 When someone new joins the team, getting the exact same environment is simple. First they install Python 3.11+ and `uv`. Then they can clone the repository and run `uv sync`. This reads the project file and installs the exact versions everyone else is using. No manual `pip install` steps are needed. If they want the same code quality checks, they can also run `uv run pre-commit install` to enable the same Git hooks. After that, their setup matches the rest of the team perfectly.
@@ -189,8 +187,6 @@ When someone new joins the team, getting the exact same environment is simple. F
 >
 > Answer:
 
---- question 5 fill here ---
-
 We set up our project based on cookiecutter template for MLOps at DTU and mostly stuck to their structure. We mainly filled in the config files in `configs/` using Hydra and set up the complete machine learning pipeline in the `src/ml_ops_project`. This includes modules for data loading, preprocessing, tokenization, model definition, training, evaluation, and a basic FastAPI API stub. We kept out tests in `tests/`, where there was one test for each module, for example, `test_data.py`.
 
 We added Docker support for all stages in `dockerfiles/` (api/data/train and a small frontend image), trained models are kept in `models/`, while data is versioned with DVC through `data.dvc` instead of a versioned `data/` folder. Our CI pipeline in `.github/workflows` is more advanced than the default, including linting, testing, pre-commit auto-updates, and Docker builds. We added `main.py` and `frontend.py` as entry points. In comparison to a basic template, we no longer make use of `notebooks/`, nor emphasize `docs/`, but rather use the exam report in `reports/`.
@@ -207,8 +203,6 @@ We added Docker support for all stages in `dockerfiles/` (api/data/train and a s
 > *concepts are important in larger projects because ... . For example, typing ...*
 >
 > Answer:
-
---- question 6 fill here ---
 
 We set clear rules for code quality and coding style early on. We used `ruff` for both linting and formatting, to remain the code consistent throughout. The code will be checked automatically in our GitHub Actions pipeline with `ruff check --fix` and `ruff format`, which ensures that the code not following the guidelines will not pass CI. For typing, we used `mypy` to check our static type hints. This made sure we did not have type errors. Finally, we added docstring to all functions and classes.
 
@@ -230,8 +224,6 @@ These were even more important principles as the project increased in size. When
 > *application but also ... .*
 >
 > Answer:
-
---- question 7 fill here ---
 
 In total we have implemented 55 tests (53 passed, 2 xfailed), with 83% coverage. We used the coverage report to find lines and functions that had not been tested. We tested not only the "happy paths", but also areas such as images, missing labels, invalid JSON to make sure our error handling actually caught them. By covering these edge cases, we were confident the core components work as expected before they even hit the main training loop.
 
@@ -266,8 +258,9 @@ Even with 100% coverage, we would not trust the code to be entirely error-free. 
 >
 > Answer:
 
---- question 9 fill here ---
-Ástríður
+We heavily relied on branches and pull requests throughout the project. Each feature was implemented in a separate branch named according to the functionality being developed. This branching ensured that our main branch remained stable while we interated on new features in isolation. Before a feature could be merged into the main branch, it has to to pass a series of automated continous integrations.
+
+Before merging a PR to the main branch, it has to undergo review by at least on of the members of the group. This two-step process enforced a peer-review culture where it helped us catch logical mistakes in our code. Also, to further ensure quality before code even reached a PR, we used a `pre-commit-update.yaml` to run local hooks. These local hooks helped us catch any typing or linting mistakes at the local level. Which resulted in a full control of our feature branch code.
 
 ### Question 10
 
@@ -299,8 +292,17 @@ Even with 100% coverage, we would not trust the code to be entirely error-free. 
 >
 > Answer:
 
---- question 11 fill here ---
-Ástríður
+We have set up Continuous Integration (CI) pipeline into five distinct GitHub Actions workflows files, providing a clean separation of concertns and speeding up debugging in the process. This automated test serves as a safety net for every pull request and push operation on our main branch.
+
+Our main test flow (`test.yaml`) supports integration and unit testing across a range of Ubuntu, Windows, and macOS operating systems and uses both Python 3.11 and 3.12. By testing across multiple PyTorch versions, we can prevent dependency conflicts before they reach production. To optimize runtime, we implemented GitHub Actions caching for our virtual environments and pip dependencies using GitHub Actions caching.
+
+The second workflow, we use a static analysis workflow defined in `linting.yaml`. This uses `ruff` tool for fast linting, along with `mypy` tool for type checking. This enforces architectural standards and type safety programmatically, rather than relying on manual code reviews.
+
+We also have a data validation workflow (`data_Validation.yaml') that is triggered by changes to our tracked files. It authenticates with GCP, fetches data from our remote stroage, and runs integrity checks. It prevents data drift or data corruption from affecting our training pipeline.
+
+Additionally, our infrastructure also inlcudes a Docker build workflow (`docker_build.yaml`) and ensures containerization is automated whenever our core environment changes, pushing images into our GitHub Container Registry. Latly, our local development hooks remain up-to-date through our use of a `pre-commit-update.yaml` workflow. This ensure a high-confidence feedback loop, making our code as portable and reliable as possible.
+
+Example of workflow: [https://github.com/alsemitoo/ml_ops/actions/workflows/linting.yaml](https://github.com/alsemitoo/ml_ops/actions/workflows/linting.yaml)
 
 ## Running code and tracking experiments
 
