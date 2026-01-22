@@ -185,6 +185,3 @@ outputs/
 
 .hydra/
 outputs/
-
-# Drift detection reports
-reports/drift/

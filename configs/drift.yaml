@@ -3,9 +3,9 @@ paths:
   current_dir: data/raw/default_train/images
   image_globs: ["*.png"]
   reference_start_idx: 0
-  reference_end_idx: 500
-  current_start_idx: 500
-  current_end_idx: 1000
+  reference_end_idx: 5000
+  current_start_idx: 70000
+  current_end_idx: 76318
 output:
   html_report: reports/drift/data_drift_report.html
   json_report: reports/drift/data_drift_report.json
