@@ -11,8 +11,8 @@ from typing import Iterable
 import hydra
 import numpy as np
 import pandas as pd
-from evidently.legacy.metric_preset import DataDriftPreset
-from evidently.legacy.report import Report
+from evidently.legacy.metric_preset import DataDriftPreset  # type: ignore
+from evidently.legacy.report import Report  # type: ignore
 from omegaconf import DictConfig
 from PIL import Image
 
