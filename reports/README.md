@@ -321,8 +321,13 @@ Example of workflow: [https://github.com/alsemitoo/ml_ops/actions/workflows/lint
 >
 > Answer:
 
---- question 12 fill here ---
-Ástríður
+We prepared Hydra config files so experiments could be reproducible even though we did not run full sweeps. All defaults live in `configs/` (e.g., `train.yaml`, `data.yaml`, `preprocess.yaml`). If we were to launch a run, we’d call:
+
+```
+uv run python src/ml_ops_project/train.py
+```
+
+Hydra picks up the defaults automatically, so no extra flags are needed. To adjust parameters we would use overrides, for example `optimizer.lr=3e-4 batch_size=64`. This setup keeps runs consistent and easy to reproduce when experiments are executed.
 
 ### Question 13
 
@@ -337,8 +342,10 @@ Example of workflow: [https://github.com/alsemitoo/ml_ops/actions/workflows/lint
 >
 > Answer:
 
---- question 13 fill here ---
-Ástríður
+We did not end up running full experiments, but we structured the project so that experiments can be reproduced without extra setup. All parameters are defined in version-controlled Hydra config files in `configs/`, which makes it easy to see and reuse the exact settings for a run. Dependencies are fully locked in `uv.lock`, so the same versions are installed every time.
+
+Data is tracked using DVC through `data.dvc`, meaning the same data snapshot can always be pulled with a single command. To avoid "works on my machine" issues, we also fixed the environments using Dockerfiles for training, data handling, the API, and the frontend, allowing anyone to build identical images. When a run started, outputs would be written to timestamped folders under `outputs/`, keeping configurations, code, and artifacts together. Reproducing a run is therefore straightforward: sync dependencies, pull the data, and rerun the training script with the same (or slightly modified) Hydra configuration.
+
 
 ### Question 14
 
@@ -385,8 +392,9 @@ Example of workflow: [https://github.com/alsemitoo/ml_ops/actions/workflows/lint
 >
 > Answer:
 
---- question 16 fill here ---
-Ástríður
+We mainly debugged issues as they appeared during development, relying heavily on GitHub Actions logs and VS Code's debugger. When something failed in CI, the action logs were usually the first step to understand where and why things broke. Locally, most debugging was done using VS Code breakpoints and step-through debugging, while some group members also used simple print or logging statements to trace values and control flow. Each member had slightly different approach, but the focus was always on quickly isolating the source of the problem.
+
+We did try to use `cProfile` to profile the code, but we were not able to run it through the full training process end-to-end, which limited how useful it was in practice. Instead, we relied on lightweight logging and timing to get a rough sense of where time was being spent, especially parts related to data loading. The code is not "perfect" but through iterative debugging and continous feedback from CI, most issues were identified and fixed before becoming larger problems.
 
 ## Working in the cloud
 
@@ -557,9 +565,8 @@ Example of workflow: [https://github.com/alsemitoo/ml_ops/actions/workflows/lint
 > *implemented using ...*
 >
 > Answer:
+We built a small Streamlit frontend that lets a user upload photo of a math equation and returns the predicted LaTeX string for copy-paste into papers or notebooks. It keeps the interface minimal—upload widget, preview, and LaTeX output box, so we could demo the model without asking users to touch the CLI. To make sure it’s easy to run anywhere, we added separate Dockerfiles for the frontend and our data, which keeps everything reproducible whether we’re testing locally or deploying.
 
---- question 28 fill here ---
-Ástríður
 
 ### Question 29
 
@@ -591,7 +598,7 @@ Example of workflow: [https://github.com/alsemitoo/ml_ops/actions/workflows/lint
 > Answer:
 
 --- question 30 fill here ---
-Ástríður
+
 
 ### Question 31
 
