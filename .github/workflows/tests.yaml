@@ -36,3 +36,14 @@ jobs:
         run: |
           uv run coverage run -m pytest tests/
           uv run coverage report -m
+
+      # - name: Start API server
+      #   run: |
+      #     uv run uvicorn ml_ops_project.api:app --host 127.0.0.1 --port 8000 &
+      #     sleep 3  # Wait for server to start
+
+      # - name: Run load tests
+      #   run: |
+      #     uv run python -m http.server 8000 &
+      #     sleep 2
+      #     uv run locust -f tests/load_tests/locustfile.py --host http://localhost:8000 --users 50 --spawn-rate 5 --run-time 30s --headless
