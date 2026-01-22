@@ -10,7 +10,7 @@ def main() -> None:
     st.markdown("# Image-to-LaTeX Translator")
     st.markdown("Convert images of mathematical equations to LaTeX code", help="Upload an equation image")
 
-    # Main content
+    # Main contentií
     col1, col2 = st.columns([1, 1], gap="large")
 
     with col1:

@@ -33,6 +33,7 @@ dependencies = [
     "torchvision>=0.20.1",
     "typer==0.15.1",
     "uvicorn==0.34.0",
+    "google-cloud-run>=0.14.0",
 ]
 
 [dependency-groups]
@@ -47,6 +48,7 @@ dev = [
     "mkdocstrings-python==1.12.2",
     "mypy>=1.19.1",
     "types-tqdm>=4.67.0.20250809",
+    "types-requests>=2.32.4.20260107",
 ]
 
 [[tool.uv.index]]
