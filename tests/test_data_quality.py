@@ -234,7 +234,7 @@ def test_all_images_mode_is_consistent(real_data_path: Path) -> None:
     images_dir = real_data_path / "images"
 
     modes = set()
-    for item in labels[37000:38000]:
+    for item in labels:
         image_path = images_dir / item["image_file"]
         img = Image.open(image_path)
         modes.add(img.mode)

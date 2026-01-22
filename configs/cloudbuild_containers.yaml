@@ -5,7 +5,7 @@ steps:
     'build',
     '.',
     '-t',
-    'europe-north2-docker.pkg.dev/dtumlops-484314/my-container-registry/train',
+    'europe-west1-docker.pkg.dev/clean-sylph-484508-h9/ml-ops-artifact-registry/train',
     '-f',
     'dockerfiles/train.dockerfile'
   ]
@@ -13,7 +13,7 @@ steps:
   id: 'Push container image'
   args: [
     'push',
-    'europe-north2-docker.pkg.dev/dtumlops-484314/my-container-registry/train'
+    'europe-west1-docker.pkg.dev/clean-sylph-484508-h9/ml-ops-artifact-registry/train'
   ]
 - name: 'gcr.io/cloud-builders/docker'
   id: 'Build API container image'
@@ -21,7 +21,7 @@ steps:
     'build',
     '.',
     '-t',
-    'europe-north2-docker.pkg.dev/dtumlops-484314/my-container-registry/api',
+    'europe-west1-docker.pkg.dev/clean-sylph-484508-h9/ml-ops-artifact-registry/api',
     '-f',
     'dockerfiles/api.dockerfile'
   ]
@@ -29,7 +29,7 @@ steps:
   id: 'Push API container image'
   args: [
     'push',
-    'europe-north2-docker.pkg.dev/dtumlops-484314/my-container-registry/api'
+    'europe-west1-docker.pkg.dev/clean-sylph-484508-h9/ml-ops-artifact-registry/api'
   ]
 - name: 'gcr.io/cloud-builders/docker'
   id: 'Build data container image'
@@ -37,7 +37,7 @@ steps:
     'build',
     '.',
     '-t',
-    'europe-north2-docker.pkg.dev/dtumlops-484314/my-container-registry/data',
+    'europe-west1-docker.pkg.dev/clean-sylph-484508-h9/ml-ops-artifact-registry/data',
     '-f',
     'dockerfiles/data.dockerfile'
   ]
@@ -45,7 +45,7 @@ steps:
   id: 'Push data container image'
   args: [
     'push',
-    'europe-north2-docker.pkg.dev/dtumlops-484314/my-container-registry/data'
+    'europe-west1-docker.pkg.dev/clean-sylph-484508-h9/ml-ops-artifact-registry/data'
   ]
 - name: 'gcr.io/cloud-builders/docker'
   id: 'Build frontend container image'
@@ -53,7 +53,7 @@ steps:
     'build',
     '.',
     '-t',
-    'europe-north2-docker.pkg.dev/dtumlops-484314/my-container-registry/frontend',
+    'europe-west1-docker.pkg.dev/clean-sylph-484508-h9/ml-ops-artifact-registry/frontend',
     '-f',
     'dockerfiles/frontend.dockerfile'
   ]
@@ -61,7 +61,7 @@ steps:
   id: 'Push frontend container image'
   args: [
     'push',
-    'europe-north2-docker.pkg.dev/dtumlops-484314/my-container-registry/frontend'
+    'europe-west1-docker.pkg.dev/clean-sylph-484508-h9/ml-ops-artifact-registry/frontend'
   ]
 options:
   logging: CLOUD_LOGGING_ONLY

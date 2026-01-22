@@ -2,7 +2,7 @@ name: Unit Tests
 
 on:
   push:
-    branches: [main]
+    branches: [main, feature/ci-data-changes]
   pull_request:
     branches: [main]
 jobs:
