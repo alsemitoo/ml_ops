@@ -176,7 +176,7 @@ def test_images_are_not_blank(real_data_path: Path) -> None:
     for item in labels[23000:24000]:
         image_path = images_dir / item["image_file"]
         img = Image.open(image_path).convert("L")  # Convert to grayscale
-        pixels: list[int] = list(img.get_flattened_data())  # type: ignore[arg-type]
+        pixels: list[int] = list(img.get_flattened_data())  # type: ignore
         avg_brightness: float = sum(pixels) / len(pixels)
 
         # Check for completely blank images (all pixels same value)
@@ -200,7 +200,7 @@ def test_all_images_are_not_blank(real_data_path: Path) -> None:
 
         image_path = images_dir / item["image_file"]
         img = Image.open(image_path).convert("L")
-        pixels: list[int] = list(img.get_flattened_data())  # type: ignore[arg-type]
+        pixels: list[int] = list(img.get_flattened_data())  # type: ignore
         avg_brightness: float = sum(pixels) / len(pixels)
 
         if avg_brightness >= 254.9:
