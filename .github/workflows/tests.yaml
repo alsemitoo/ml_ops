@@ -2,7 +2,7 @@ name: Unit Tests
 
 on:
   push:
-    branches: [main, feature/ci-data-changes]
+    branches: [main]
   pull_request:
     branches: [main]
 jobs:
@@ -39,7 +39,7 @@ jobs:
 
   build:
     needs: test
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    if: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/feature/ci-data-changes') }}
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
