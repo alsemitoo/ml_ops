@@ -233,7 +233,7 @@ These were even more important principles as the project increased in size. When
 
 --- question 7 fill here ---
 
-In total we have implemented 55 tests (53 passed, 2 xfailed), achieving 83% code coverage. We primarily tested data loading and preprocessing as critical components, along with tokenization, model construction, and visualization. We tested all helper functions and class methods while intentionally excluding the main training loop and entry points. Our tests cover edge cases, error handling, and failure scenarios to ensure robustness across different input types and conditions.
+In total we have implemented 55 tests (53 passed, 2 xfailed), with 83% coverage. We used the coverage report to find lines and functions that had not been tested. We tested not only the "happy paths", but also areas such as images, missing labels, invalid JSON to make sure our error handling actually caught them. By covering these edge cases, we were confident the core components work as expected before they even hit the main training loop.
 
 
 ### Question 8
@@ -249,9 +249,9 @@ In total we have implemented 55 tests (53 passed, 2 xfailed), achieving 83% code
 >
 > Answer:
 
-The total code coverage of our code is 83%, which includes all our source code. We are not at 100% coverage because we deliberately excluded testing the main entry point functions, as they primarily orchestrate calls to other well-tested functions. However, coverage helped us identify untested error handling branches and edge cases, particularly failing if-statements that we then addressed.
+The total code coverage of our code is 83%, which includes all our source code. We are not at 100% coverage because we chose not to include the main entry point since they mainly orchestrate calls to other well-tested functions and not to train the main train function. However, coverage helped us identify untested error handling branches and edge cases, particularly failing if-statements that we then addressed, and what functions we could have missed.
 
-Even with 100% coverage, we would not trust the code to be entirely error-free. Code coverage only measures whether lines are executed, not whether they are *correct*. Two major limitations exist: first, coverage cannot catch logical errors (e.g., an if condition checks the wrong variable), and second, it cannot verify behavior across all possible input combinations. Additionally, 100% coverage provides no guarantees about integration between modules or real-world scenarios. Therefore, while high coverage is valuable for identifying obvious gaps and untested paths, it should be combined with thoughtful test design, code review, and integration testing to truly ensure robustness.
+Even with 100% coverage, we would not trust the code to be entirely error-free. Code coverage only measures whether lines are executed, not whether they are *correct*. There are two major limitations to code coverage: coverage cannot detect logical errors (e.g., an if condition checks the wrong variable), and coverage cannot check code execution for all possible input values. Finally, coverage proves that our tests have seen the code, but it does not guarantee that the code has seen every real-world scenario.
 
 ### Question 9
 
