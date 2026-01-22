@@ -59,7 +59,7 @@ jobs:
       - name: Pull data from DVC
         run: |
           uv run dvc pull --no-run-cache -v --jobs 8
-          unzip data.zip -d .
+          unzip -q data.zip -d .
         timeout-minutes: 60
 
       - name: Debug File Structure

@@ -234,7 +234,10 @@ def test_all_images_mode_is_consistent(real_data_path: Path) -> None:
     images_dir = real_data_path / "images"
 
     modes = set()
-    for item in labels:
+    for i, item in enumerate(labels):
+        if i % 10000 == 0:
+            print(f"Checking image mode {i}/{len(labels)}...")
+
         image_path = images_dir / item["image_file"]
         img = Image.open(image_path)
         modes.add(img.mode)
