@@ -59,8 +59,13 @@ jobs:
       - name: Pull data from DVC
         run: |
           uv run dvc pull --no-run-cache -v --jobs 8
-          unzip -q data.zip -d .
+          unzip data.zip -d .
         timeout-minutes: 60
+
+      - name: Debug File Structure
+        run: |
+          echo "Listing directories in data/..."
+          ls -R data/ | head -n 20  # Show the first 20 lines of structure
 
       - name: Run data quality tests
         run: |
