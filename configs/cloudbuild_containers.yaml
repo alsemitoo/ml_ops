@@ -1,0 +1,67 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  id: 'Build container image'
+  args: [
+    'build',
+    '.',
+    '-t',
+    'europe-north2-docker.pkg.dev/dtumlops-484314/my-container-registry/train',
+    '-f',
+    'dockerfiles/train.dockerfile'
+  ]
+- name: 'gcr.io/cloud-builders/docker'
+  id: 'Push container image'
+  args: [
+    'push',
+    'europe-north2-docker.pkg.dev/dtumlops-484314/my-container-registry/train'
+  ]
+- name: 'gcr.io/cloud-builders/docker'
+  id: 'Build API container image'
+  args: [
+    'build',
+    '.',
+    '-t',
+    'europe-north2-docker.pkg.dev/dtumlops-484314/my-container-registry/api',
+    '-f',
+    'dockerfiles/api.dockerfile'
+  ]
+- name: 'gcr.io/cloud-builders/docker'
+  id: 'Push API container image'
+  args: [
+    'push',
+    'europe-north2-docker.pkg.dev/dtumlops-484314/my-container-registry/api'
+  ]
+- name: 'gcr.io/cloud-builders/docker'
+  id: 'Build data container image'
+  args: [
+    'build',
+    '.',
+    '-t',
+    'europe-north2-docker.pkg.dev/dtumlops-484314/my-container-registry/data',
+    '-f',
+    'dockerfiles/data.dockerfile'
+  ]
+- name: 'gcr.io/cloud-builders/docker'
+  id: 'Push data container image'
+  args: [
+    'push',
+    'europe-north2-docker.pkg.dev/dtumlops-484314/my-container-registry/data'
+  ]
+- name: 'gcr.io/cloud-builders/docker'
+  id: 'Build frontend container image'
+  args: [
+    'build',
+    '.',
+    '-t',
+    'europe-north2-docker.pkg.dev/dtumlops-484314/my-container-registry/frontend',
+    '-f',
+    'dockerfiles/frontend.dockerfile'
+  ]
+- name: 'gcr.io/cloud-builders/docker'
+  id: 'Push frontend container image'
+  args: [
+    'push',
+    'europe-north2-docker.pkg.dev/dtumlops-484314/my-container-registry/frontend'
+  ]
+options:
+  logging: CLOUD_LOGGING_ONLY
