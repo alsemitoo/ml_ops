@@ -1,4 +1,4 @@
-FROM ghcr.io/astral-sh/uv:python3.11-alpine AS base
+FROM ghcr.io/astral-sh/uv:python3.11-bookworm-slim AS base
 
 COPY uv.lock uv.lock
 COPY pyproject.toml pyproject.toml
