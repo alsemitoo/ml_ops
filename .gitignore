@@ -178,6 +178,7 @@ cython_debug/
 
 
 data/
+data.zip
 outputs/
 .ruff_cache/
 

@@ -1,5 +1,11 @@
+import os
+
+import requests  # type: ignore
 import streamlit as st
 from PIL import Image
+
+# Get API URL from environment variable (set in Cloud Run) or use default for local testing
+API_URL = os.getenv("API_URL", "http://localhost:8080")
 
 
 def main() -> None:
@@ -26,11 +32,36 @@ def main() -> None:
     with col2:
         st.markdown("### 📝 LaTeX Output")
         if uploaded_file is not None:
-            st.info("Backend connection coming soon...")
-            st.markdown("**Predicted LaTeX:**")
-            latex_code = r"\frac{x}{y} + \sqrt{z}"
-            st.code(latex_code, language="latex")
-            st.button("Copy LaTeX")
+            with st.spinner("🔄 Processing image..."):
+                try:
+                    # Prepare the file for API request
+                    uploaded_file.seek(0)  # Reset file pointer
+                    files = {"file": (uploaded_file.name, uploaded_file, uploaded_file.type)}
+
+                    # Make API request
+                    response = requests.post(f"{API_URL}/predict/", files=files, timeout=120)
+
+                    if response.status_code == 200:
+                        result = response.json()
+                        latex_code = result.get("prediction", "")
+
+                        st.success("✅ Prediction complete!")
+                        st.markdown("**Predicted LaTeX:**")
+                        st.code(latex_code, language="latex")
+
+                        if st.button("📋 Copy LaTeX"):
+                            st.toast("Copied to clipboard!")
+                    else:
+                        st.error(f"❌ API error: {response.status_code}")
+                        st.json(response.json())
+
+                except requests.exceptions.ConnectionError:
+                    st.error(f"❌ Cannot connect to API at {API_URL}")
+                    st.info("Make sure the API is running and accessible.")
+                except requests.exceptions.Timeout:
+                    st.error("⏱️ Request timed out. Try a smaller image.")
+                except Exception as e:
+                    st.error(f"❌ Error: {str(e)}")
         else:
             st.warning("Upload an image to get started")
 

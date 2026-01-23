@@ -1,4 +1,4 @@
-name: Unit Tests
+name: Integration Tests
 
 on:
   push:
@@ -30,34 +30,8 @@ jobs:
           uv pip install torch==${{ matrix.torch-version }} torchvision --index-url https://download.pytorch.org/whl/cpu
           uv tree
 
-      - name: Run unit tests & coverage
+      - name: Run integration tests
         env:
           UV_HTTP_TIMEOUT: 1200
         run: |
-          uv run coverage run -m pytest tests/unittests/
-          uv run coverage report -m
-
-  build:
-    needs: test
-    if: ${{ github.event_name == 'push' }}
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v5
-
-    - name: Auth with GCP
-      uses: google-github-actions/auth@v2
-      with:
-        credentials_json: ${{ secrets.GCP_SA_KEY }}
-
-    - name: Set up Cloud SDK
-      uses: google-github-actions/setup-gcloud@v2
-
-    - name: Submit build
-      run: gcloud builds submit . --config configs/cloudbuild_api.yaml
-
-    - name: Submit build
-      run: gcloud builds submit . --config configs/cloudbuild_frontend.yaml
-
-    - name: Submit build
-      run: gcloud builds submit . --config configs/cloudbuild_train.yaml
+          uv run pytest tests/integrationtests/
