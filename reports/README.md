@@ -423,6 +423,7 @@ We used:
 - Artifact Registry: was used for storing our Docker images
 - Service Accounts: were used for authentication and authorization
 - Cloud Build: was used for building our Docker images (a process which has been automated in our GitHub Actions pipeline)
+- Cloud Run: was used for deploying the API and Frontend images (a process which has been automated in our Github Actions pipeline)
 
 ### Question 18
 
