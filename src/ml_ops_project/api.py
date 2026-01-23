@@ -13,7 +13,7 @@ import pandas as pd
 import torch
 from fastapi import BackgroundTasks, FastAPI, File, HTTPException, UploadFile
 from fastapi.responses import JSONResponse
-from google.cloud import storage
+from google.cloud import storage  # type: ignore
 from PIL import Image
 from torchvision import transforms
 
