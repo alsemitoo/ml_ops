@@ -190,7 +190,7 @@ When someone new joins the team, getting the exact same environment is simple. F
 
 We set up our project based on cookiecutter template for MLOps at DTU and mostly stuck to their structure. We mainly filled in the config files in `configs/` using Hydra and set up the complete machine learning pipeline in the `src/ml_ops_project`. This includes modules for data loading, preprocessing, tokenization, model definition, training, evaluation, and a basic FastAPI API stub. We kept out tests in `tests/`, where there was one test for each module, for example, `test_data.py`.
 
-We added Docker support for all stages in `dockerfiles/` (api/data/train and a small frontend image), trained models are kept in `models/`, while data is versioned with DVC through `data.dvc` instead of a versioned `data/` folder. Our CI pipeline in `.github/workflows` is more advanced than the default, including linting, testing, pre-commit auto-updates, and Docker builds. We added `main.py` and `frontend.py` as entry points. In comparison to a basic template, we no longer make use of `notebooks/`, nor emphasize `docs/`, but rather use the exam report in `reports/`.
+We added Docker support for all stages in `dockerfiles/` (api/data/train and a small frontend image), trained models are kept in `models/`, while data is versioned with DVC through `data.zip.dvc` instead of a versioned `data/` folder. Our CI pipeline in `.github/workflows` is more advanced than the default, including linting, testing, pre-commit auto-updates, and Docker builds. We added `main.py` and `frontend.py` as entry points. In comparison to a basic template, we no longer make use of `notebooks/`, nor emphasize `docs/`, but rather use the exam report in `reports/`.
 
 ### Question 6
 
@@ -276,7 +276,7 @@ Before merging a PR to the main branch, it has to undergo review by at least on 
 >
 > Answer:
 
---- question 10 fill here --- (Alex)
+We used DVC to track our dataset file `data.zip`, ensuring that the exact version of the data is linked to our code. By using `data.zip.dvc`, we track the MD5 hash of the dataset, while the actual file is stored in our remote storage (GCP Bucket). This allows us to share the large dataset among team members and CI pipelines without cluttering the git repository. Any team member can run `dvc pull` to retrieve the exact data version specified in the commit, guaranteeing reproducibility of our training experiments.
 
 ### Question 11
 
@@ -482,7 +482,7 @@ For the hardware configuration, we selected n1-standard-8 instances to ensure su
 >
 > Answer:
 
---- question 22 fill here --- (Andrea and Alessandro)
+We did manage to train our model in the cloud using Vertex AI. To do that, we created an image
 
 ## Deployment
 
@@ -515,8 +515,13 @@ We did write an API for our model and we used FastAPI to do that. We just create
 >
 > Answer:
 
-We first tried using the FastAPI endpoint locally and it worked correctly: we were able to upload an image and ti successfully returned a string composed of basic latex tokens. Most of the times the formula was also syntactically correct, but not the same as the ground truth.
-Then we ...
+We first tried using the FastAPI endpoint locally and it worked correctly: we were able to upload an image and it successfully returned a string composed of basic latex tokens. Most of the times the formula was also syntactically correct, but not the same as the ground truth.
+
+For the final deployment, we containerized the application by creating a Docker image that encapsulates the FastAPI service, our trained model weights, and all necessary dependencies. This image was pushed to the container registry and deployed in the cloud using Google Cloud Run.
+
+To invoke the deployed service, users can send a POST request to the cloud-hosted URL. For example, through our own and deployed simple frontend in https://frontend-1075248624324.europe-west1.run.app, or using curl:
+
+curl -X POST "https://api-1075248624324.europe-west1.run.app/predict/" -F "file=@image.png
 
 ### Question 25
 
@@ -552,7 +557,7 @@ All three types of tests were integrated into our CI/CD pipline to ensure contin
 >
 > Answer:
 
---- question 26 fill here --- (Alex)
+We implemented a data drift detection mechanism using `evidently`. Our implementation in `src/ml_ops_project/data_drift.py` extracts physical features from images—specifically brightness, contrast, sharpness, and aspect ratio—instead of raw pixel values. We compare these statistics between a reference dataset (training data) and the current inference data. The system generates a visual HTML report (`data_drift_report.html`) and a JSON summary, allowing us to identify if the input data characteristics are shifting over time, which could degrade model performance.
 
 ## Overall discussion of project
 
@@ -605,7 +610,15 @@ We built a small Streamlit frontend that lets a user upload photo of a math equa
 >
 > Answer:
 
---- question 29 fill here --- (Andrea and Alessandro)
+Our architecture integrates local development with a GCP-based MLOps pipeline:
+
+1.  **Local Development**: We use `uv` for dependency management and `dvc` for data versioning (tracking `data.zip`). Code changes are pushed to GitHub.
+2.  **CI/CD**: GitHub Actions triggers workflows for linting (`ruff`, `mypy`), unit/integration testing (`pytest`), and data validation.
+3.  **Container Build**: We define Docker images for `train`, `api`, and `frontend`. These are built using Google Cloud Build (configured in `cloudbuild_containers.yaml`) and stored in the GCP Artifact Registry.
+4.  **Training**: The training job runs on Vertex AI using the `train` image and data pulled from the GCP Bucket. Model artifacts are saved back to the bucket/registry.
+5.  **Inference**: The trained model is packaged into the `api` container (FastAPI).
+6.  **Frontend**: A Streamlit application (`frontend` container) provides a user interface, sending images to the API for LaTeX prediction.
+7.  **Monitoring**: We run drift detection jobs (using `evidently`) to monitor image statistics against the training baseline.
 
 ### Question 30
 
