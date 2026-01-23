@@ -486,6 +486,7 @@ We did try to use `cProfile` to profile the code, but we were not able to run it
 > Answer:
 
 --- question 23 fill here ---
+We did write an API for our model and we used FastAPI to do that. We just created a file in the root of our project with an endpoint for inference called "predict". This takes an image, resizes it to the wanted size for the model to able to process it, and then feeds it to the model deployed on the google cloud. It then uses a beam search to return the sequences of ids in our vocaboulary, which is a collection of latex tokens extracted from the dataset. In this way, we're able to reconstruct a hopefully syntactically correct formula.
 
 ### Question 24
 
@@ -501,7 +502,8 @@ We did try to use `cProfile` to profile the code, but we were not able to run it
 >
 > Answer:
 
---- question 24 fill here ---
+We first tried using the FastAPI endpoint locally and it worked correctly: we were able to upload an image and ti successfully returned a string composed of basic latex tokens. Most of the times the formula was also syntactically correct, but not the same as the ground truth.
+Then we ...
 
 ### Question 25
 
