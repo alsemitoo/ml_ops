@@ -31,7 +31,7 @@ jobs:
 
       - name: Start API server
         run: |
-          uv run uvicorn ml_ops_project.api:app --host 127.0.0.1 --port 8000 & sleep 3
+          uv run uvicorn ml_ops_project.api:app --host 127.0.0.1 --port 8000 & sleep 7
 
       - name: Run load tests
         env:

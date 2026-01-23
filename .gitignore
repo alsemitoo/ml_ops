@@ -181,8 +181,12 @@ data/
 data.zip
 outputs/
 .ruff_cache/
-.dvc/
 
 
 .hydra/
 outputs/
+
+reports/drift/
+data/drifted_current/
+
+gcp-keys/

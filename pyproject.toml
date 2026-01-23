@@ -109,5 +109,3 @@ markers = [
     "serial",
 ]
 addopts = "-m 'not full_dataset'"
-
-detect-drift = "ml_ops_project.data_drift:main"
