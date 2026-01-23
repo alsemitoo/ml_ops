@@ -148,7 +148,7 @@ s242765, s243094, s243139, s243277
 >
 > Answer:
 
-The main third-party package that has been used is PIL, which has been used to preprocess the images. The core functionality of PIL in our case has been the possibility to resize the dataset images to a fixed size of 128x640 pixels, which is the size for the ResNet50 model that we used.
+The main third-party package that has been used is PIL, which has been used to preprocess the images. The core functionality of PIL in our case has been the possibility to resize the dataset images to a fixed size of 128x640 pixels, which is the size for the ResNet18 model that we used.
 Another third-party package that has been used is Matplotlib, which has been used to create visualizations of the learning curves of the model during training.
 
 ## Coding environment
