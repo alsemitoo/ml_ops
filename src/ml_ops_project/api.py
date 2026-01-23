@@ -15,7 +15,7 @@ from ml_ops_project.preprocess import FormulaResizePad
 from ml_ops_project.tokenizer import LaTeXTokenizer
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-MODEL_PATH = Path("models/model.pth")
+MODEL_PATH = Path("models/model1.pth")
 VOCAB_PATH = Path("models/vocab.pt")
 
 model_artifacts: dict[str, Any] = {}
