@@ -87,7 +87,7 @@ will check the repositories and the code to verify your answers.
 * [ ] Add a continues workflow that triggers when changes to the model registry is made (M19)
 * [X] Create a data storage in GCP Bucket for your data and link this with your data version control setup (M21)
 * [X] Create a trigger workflow for automatically building your docker images (M21)
-* [ ] Get your model training in GCP using either the Engine or Vertex AI (M21)
+* [X] Get your model training in GCP using either the Engine or Vertex AI (M21)
 * [X] Create a FastAPI application that can do inference using your model (M22)
 * [x] Deploy your model in GCP using either Functions or Run as the backend (M23)
 * [X] Write API tests for your application and setup continues integration for these (M24)
@@ -367,7 +367,9 @@ Data is tracked using DVC through `data.dvc`, meaning the same data snapshot can
 >
 > Answer:
 
---- question 14 fill here ---
+Unfortunately we ended up not using proper services for tracking experiments like Weights&Biases for lack of time. Nonetheless, we set up hydra config files and docker files to ensure code and data reproducibility, hoping to make the possible process of tracking further experiments straightforward if time allowed.
+
+Even if it was only done locally and without the use of professional softwares like W&B, the most important experiment we performed was applying 2 slightly different architectures for the model, and this process resulted in improving the model's performance by implementing a 2d-positional-encoder and modifying the ResNet parameters (decreasing the stride from 2 to 1).
 
 ### Question 15
 
@@ -442,9 +444,9 @@ We used:
 >
 > Answer:
 
-To execute our model training, we used GCP Compute Engine resources managed through Vertex AI. While we chose Vertex AI for its managed MLOps capabilities, the backbone of our training pipeline relied on ephemeral Compute Engine instances provisioned specifically for our training jobs.
+To execute our model training, we used GCP Compute Engine resources managed through Vertex AI. While we chose Vertex AI for its impressive MLOps capabilities, the backbone of our training pipeline relied on temporary Compute Engine instances provisioned specifically for our training jobs.
 
-For the hardware configuration, we selected n1-standard-8 instances to ensure sufficient CPU and memory for data preprocessing. To accelerate the training process, we attached NVIDIA_TESLA_T4 GPUs. We deployed our code using a [custom Docker container / pre-built Google Cloud container] stored in the Artifact Registry, which allowed the Compute Engine instances to pull the exact environment dependencies required for our TensorFlow/PyTorch model immediately upon startup.
+Regarding the hardware configuration, we selected instances of n1-standard-8 machine to ensure sufficient CPU and memory for data preprocessing. To accelerate the training process, we attached NVIDIA_TESLA_T4 GPUs. We deployed our code using docker containers stored in the Artifact Registry, which allowed the Compute Engine instances to pull the exact environment dependencies required for our PyTorch model immediately upon startup.
 
 ### Question 19
 
@@ -472,7 +474,7 @@ For the hardware configuration, we selected n1-standard-8 instances to ensure su
 >
 > Answer:
 
---- question 21 fill here --- (Andrea and Alessandro)
+![GCP cloud build history](figures/gcp_cloud_build_history.png)
 
 ### Question 22
 
