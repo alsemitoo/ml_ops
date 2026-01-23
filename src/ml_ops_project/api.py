@@ -15,6 +15,7 @@ from fastapi import BackgroundTasks, FastAPI, File, HTTPException, UploadFile
 from fastapi.responses import JSONResponse
 from google.cloud import storage
 from PIL import Image
+from prometheus_client import Counter, Histogram, make_asgi_app
 from torchvision import transforms
 
 from ml_ops_project.model import Im2LatexModel
@@ -27,6 +28,10 @@ VOCAB_PATH = Path("models/vocab.pt")
 LOG_FILE = Path("logs/prediction_database.csv")
 
 model_artifacts: dict[str, Any] = {}
+
+PREDICTION_COUNTER = Counter("prediction_requests_total", "Total number of prediction requests")
+ERROR_COUNTER = Counter("prediction_errors_total", "Total number of prediction errors")
+INFERENCE_LATENCY = Histogram("prediction_latency_seconds", "Time taken for prediction inference")
 
 
 def _init_model_artifacts_if_needed() -> None:
@@ -161,6 +166,8 @@ async def lifespan(app: FastAPI) -> Any:
 
 app = FastAPI(lifespan=lifespan)
 
+app.mount("/metrics", make_asgi_app())
+
 
 def beam_search_prediction(
     model: torch.nn.Module,
@@ -169,18 +176,7 @@ def beam_search_prediction(
     beam_width: int = 3,
     max_len: int = 150,
 ) -> str:
-    """Perform beam search decoding on image.
-
-    Args:
-        model: The encoder-decoder model.
-        image: Input image tensor.
-        tokenizer: LaTeX tokenizer.
-        beam_width: Width of beam search.
-        max_len: Maximum sequence length.
-
-    Returns:
-        LaTeX string prediction.
-    """
+    """Perform beam search decoding on image."""
     try:
         device = next(model.parameters()).device
     except StopIteration:
@@ -229,11 +225,7 @@ def beam_search_prediction(
 
 @app.get("/")
 def root() -> dict[str, Any]:
-    """Health check endpoint.
-
-    Returns:
-        Status information including device and health status.
-    """
+    """Health check endpoint."""
     return {
         "message": "Im2Latex Inference API is running",
         "device": str(DEVICE),
@@ -251,19 +243,17 @@ async def predict(
     Args:
         file: Image file to process.
 
-    Returns:
-        JSON response with filename, prediction, and status code.
+    PREDICTION_COUNTER.inc()
 
-    Raises:
-        HTTPException: If model artifacts not loaded or processing fails.
-    """
     contents = await file.read()
     if not contents:
+        ERROR_COUNTER.inc()
         return JSONResponse(status_code=HTTPStatus.BAD_REQUEST, content={"error": "Empty file"})
 
     try:
         image = Image.open(io.BytesIO(contents)).convert("RGB")
     except Exception:
+        ERROR_COUNTER.inc()
         return JSONResponse(status_code=HTTPStatus.BAD_REQUEST, content={"error": "Invalid image file"})
 
     _init_model_artifacts_if_needed()
@@ -272,6 +262,7 @@ async def predict(
     model = model_artifacts.get("model")
     tokenizer = model_artifacts.get("tokenizer")
     if transform is None or model is None or tokenizer is None:
+        ERROR_COUNTER.inc()
         raise HTTPException(
             status_code=HTTPStatus.SERVICE_UNAVAILABLE,
             detail="Model artifacts not loaded",
@@ -280,8 +271,10 @@ async def predict(
     try:
         input_tensor = transform(image)
         with torch.no_grad():
-            prediction = beam_search_prediction(model, input_tensor, tokenizer)
+            with INFERENCE_LATENCY.time():
+                prediction = beam_search_prediction(model, input_tensor, tokenizer)
     except Exception:
+        ERROR_COUNTER.inc()
         raise HTTPException(
             status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
             detail="Failed to process image",
