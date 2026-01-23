@@ -1,15 +1,20 @@
 import io
+import os
 from contextlib import asynccontextmanager
+from datetime import datetime
 from http import HTTPStatus
 from pathlib import Path
 from typing import Any
+from uuid import uuid4
 
+import pandas as pd
 import torch
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import BackgroundTasks, FastAPI, File, HTTPException, UploadFile
 from fastapi.responses import JSONResponse
 from PIL import Image
 from torchvision import transforms
 
+from ml_ops_project.data_drift import image_features
 from ml_ops_project.model import Im2LatexModel
 from ml_ops_project.preprocess import FormulaResizePad
 from ml_ops_project.tokenizer import LaTeXTokenizer
@@ -17,6 +22,7 @@ from ml_ops_project.tokenizer import LaTeXTokenizer
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 MODEL_PATH = Path("models/model1.pth")
 VOCAB_PATH = Path("models/vocab.pt")
+LOG_FILE = Path("logs/prediction_database.csv")
 
 model_artifacts: dict[str, Any] = {}
 
@@ -63,9 +69,31 @@ def _init_model_artifacts_if_needed() -> None:
     model_artifacts["transform"] = transform
 
 
+def add_to_database(temp_img_path: Path, prediction: str) -> None:
+    """Extracts features and appends them to the CSV log file."""
+    try:
+        # Extract features using your data_drift.py logic
+        features: dict[str, float | str] = {**image_features(temp_img_path)}
+
+        # Add metadata and prediction
+        features["prediction"] = prediction
+        features["timestamp"] = datetime.now().isoformat()
+
+        # Append to CSV
+        df = pd.DataFrame([features])
+        df.to_csv(LOG_FILE, mode="a", header=not LOG_FILE.exists(), index=False)
+    finally:
+        # Clean up the temporary file
+        if temp_img_path.exists():
+            os.remove(temp_img_path)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> Any:
     """Manage app lifecycle: startup and shutdown."""
+    if not LOG_FILE.exists():
+        headers = ["brightness", "contrast", "sharpness", "width", "height", "aspect_ratio", "prediction", "timestamp"]
+        pd.DataFrame(columns=headers).to_csv(LOG_FILE, index=False)
     try:
         _init_model_artifacts_if_needed()
     except Exception:
@@ -157,7 +185,10 @@ def root() -> dict[str, Any]:
 
 
 @app.post("/predict/", response_model=None)
-async def predict(file: UploadFile = File(...)) -> dict[str, Any] | JSONResponse:
+async def predict(
+    file: UploadFile = File(...),
+    background_tasks: BackgroundTasks = BackgroundTasks(),
+) -> dict[str, Any] | JSONResponse:
     """Inference endpoint that takes an image and returns LaTeX prediction.
 
     Args:
@@ -198,6 +229,17 @@ async def predict(file: UploadFile = File(...)) -> dict[str, Any] | JSONResponse
             status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
             detail="Failed to process image",
         )
+
+    # Persist image to a temp file and log features asynchronously
+    try:
+        logs_dir = LOG_FILE.parent
+        logs_dir.mkdir(parents=True, exist_ok=True)
+        temp_img_path = logs_dir / f"tmp_{uuid4().hex}.png"
+        image.save(temp_img_path)
+        background_tasks.add_task(add_to_database, temp_img_path, prediction)
+    except Exception:
+        # Do not fail the prediction if logging fails
+        pass
 
     return {
         "filename": file.filename,
