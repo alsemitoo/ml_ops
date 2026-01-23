@@ -295,13 +295,13 @@ We used DVC to track our dataset file `data.zip`, ensuring that the exact versio
 
 We have set up Continuous Integration (CI) pipeline into five distinct GitHub Actions workflows files, providing a clean separation of concertns and speeding up debugging in the process. This automated test serves as a safety net for every pull request and push operation on our main branch.
 
-Our main test flow (`test.yaml`) supports integration and unit testing across a range of Ubuntu, Windows, and macOS operating systems and uses both Python 3.11 and 3.12. By testing across multiple PyTorch versions, we can prevent dependency conflicts before they reach production. To optimize runtime, we implemented GitHub Actions caching for our virtual environments and pip dependencies using GitHub Actions caching.
+Our main test flow (`test.yaml`) supports integration and unit testing across a range of Ubuntu, Windows, and macOS operating systems and uses both Python 3.11 and 3.12. We also test two PyTorch versions. To optimize runtime, we implemented GitHub Actions caching for our virtual environments and pip dependencies using GitHub Actions caching.
 
 The second workflow, we use a static analysis workflow defined in `linting.yaml`. This uses `ruff` tool for fast linting, along with `mypy` tool for type checking. This enforces architectural standards and type safety programmatically, rather than relying on manual code reviews.
 
-We also have a data validation workflow (`data_Validation.yaml') that is triggered by changes to our tracked files. It authenticates with GCP, fetches data from our remote stroage, and runs integrity checks. It prevents data drift or data corruption from affecting our training pipeline.
+We also have a data validation workflow (`data_Validation.yaml') that is triggered by changes to dvc-related files. It authenticates with GCP, fetches data from our remote stroage, and runs integrity checks. It prevents data drift or data corruption from affecting our training pipeline.
 
-Additionally, our infrastructure also inlcudes a Docker build workflow (`docker_build.yaml`) and ensures containerization is automated whenever our core environment changes, pushing images into our GitHub Container Registry. Latly, our local development hooks remain up-to-date through our use of a `pre-commit-update.yaml` workflow. This ensure a high-confidence feedback loop, making our code as portable and reliable as possible.
+Additionally, our infrastructure also inlcudes Docker build workflows (`cloudbuild_*.yaml`) and ensures containerization is automated whenever our core environment changes, pushing images into the cloud registry, while also deploying the API and Frontend once the images are built. Lastly, our local development hooks remain up-to-date through our use of a `pre-commit-update.yaml` workflow. This ensure a high-confidence feedback loop, making our code as portable and reliable as possible.
 
 Example of workflow: [https://github.com/alsemitoo/ml_ops/actions/workflows/linting.yaml](https://github.com/alsemitoo/ml_ops/actions/workflows/linting.yaml)
 
@@ -448,8 +448,8 @@ For the hardware configuration, we selected n1-standard-8 instances to ensure su
 >
 > Answer:
 
-![my_image](figures/gcp_bucket.png)
-![my_image](figures/gcp_bucket_2.png)
+![Bucket](figures/gcp_bucket.png)
+![Bucket 2](figures/gcp_bucket_2.png)
 
 ### Question 20
 
@@ -458,7 +458,7 @@ For the hardware configuration, we selected n1-standard-8 instances to ensure su
 >
 > Answer:
 
-![my_image](figures/artifact_registry.png)
+![Artifact Registry](figures/artifact_registry.png)
 
 ### Question 21
 
