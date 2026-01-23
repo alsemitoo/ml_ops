@@ -226,7 +226,7 @@ These were even more important principles as the project increased in size. When
 >
 > Answer:
 
-In total we have implemented 81 tests across unit tests, integration tests, data quality tests, and performance tests (74 passed, 5 deselected, 2 xfailed), with 85% coverage. We used the coverage report to find lines and functions that had not been tested. We tested not only the "happy paths", but also areas such as images, missing labels, invalid JSON to make sure our error handling actually caught them. By covering these edge cases, we were confident the core components work as expected before they even hit the main training loop.
+In total we have implemented 81 tests across unit tests, integration tests, data quality tests, and performance tests (74 passed, 5 deselected, 2 xfailed), with 85% coverage. We used the coverage report to find lines and functions that had not been tested. We tested not only the "happy paths", but also areas such as images, missing labels, invalid JSON, etc, to make sure our error handling actually caught them. By covering these edge cases, we were confident the core components work as expected before they even hit the main training loop.
 
 
 ### Question 8
@@ -261,7 +261,7 @@ Even with 100% coverage, we would not trust the code to be entirely error-free. 
 
 We heavily relied on branches and pull requests throughout the project. Each feature was implemented in a separate branch named according to the functionality being developed. This branching ensured that our main branch remained stable while we interated on new features in isolation. Before a feature could be merged into the main branch, it has to to pass a series of automated continous integrations.
 
-Before merging a PR to the main branch, it has to undergo review by at least on of the members of the group. This two-step process enforced a peer-review culture where it helped us catch logical mistakes in our code. Also, to further ensure quality before code even reached a PR, we used a `pre-commit-update.yaml` to run local hooks. These local hooks helped us catch any typing or linting mistakes at the local level. Which resulted in a full control of our feature branch code.
+Before merging a PR to the main branch, it has to undergo review by at least one of the members of the group. This two-step process enforced a peer-review culture where it helped us catch logical mistakes in our code. Also, to further ensure quality before code even reached a PR, we used a `pre-commit-update.yaml` to run local hooks. These local hooks helped us catch any typing or linting mistakes at the local level. Which resulted in a full control of our feature branch code.
 
 ### Question 10
 
@@ -276,7 +276,11 @@ Before merging a PR to the main branch, it has to undergo review by at least on 
 >
 > Answer:
 
-We used DVC to track our dataset file `data.zip`, ensuring that the exact version of the data is linked to our code. By using `data.zip.dvc`, we track the MD5 hash of the dataset, while the actual file is stored in our remote storage (GCP Bucket). This allows us to share the large dataset among team members and CI pipelines without cluttering the git repository. Any team member can run `dvc pull` to retrieve the exact data version specified in the commit, guaranteeing reproducibility of our training experiments.
+Regarding data management, we initially attempted a DVC version-aware approach by uploading the entire uncompressed dataset to our GCP bucket. However, tracking thousands of individual images became painfully slow.
+
+Consequently, we transitioned to using DVC to track our dataset file `data.zip`, ensuring that the exact version of the data is linked to our code. By using `data.zip.dvc`, we track the MD5 hash of the dataset, while the actual file is stored in our remote storage (GCP Bucket). This allows us to share the large dataset among team members and CI pipelines without cluttering the git repository. Any team member can run `dvc pull` to retrieve the exact data version specified in the commit.
+
+This is why our bucket currently contains both "approaches": the legacy individual files and the optimized hashed .zip archive. Using dvc pull now allows any team member or CI pipeline to quickly retrieve the exact dataset version needed for training, ensuring full reproducibility without the overhead of tracking thousands of small files.
 
 ### Question 11
 
