@@ -367,7 +367,7 @@ Data is tracked using DVC through `data.dvc`, meaning the same data snapshot can
 >
 > Answer:
 
---- question 14 fill here --- (Andrea and Alessandro)
+--- question 14 fill here ---
 
 ### Question 15
 
@@ -487,7 +487,9 @@ For the hardware configuration, we selected n1-standard-8 instances to ensure su
 >
 > Answer:
 
-We did manage to train our model in the cloud using Vertex AI. To do that, we created an image
+We did manage to train our model in the cloud using Vertex AI. To do that, we first created an image for the training using the train.dockerfile, which set up the environment for the training process to be executed as a training job on the google cloud platform. Then, we initiated the job from the terminal, specifying the parameters of the configuration, like number of epochs, learning rate, and other details about the training process, as well as the instructions on which GPU to use, region, job name, etc.
+An important piece of this configuration was the service account of the bucket we took the data from, which was also the same where we put the trained model. This was necessary the bucket they were in wasn't in the same project where we run the training process.
+Finally, we chose Vertex AI because it seemed a more straightforward between the two.
 
 ## Deployment
 
@@ -581,7 +583,13 @@ We implemented a data drift detection mechanism using `evidently`. Our implement
 >
 > Answer:
 
---- question 27 fill here --- (Andrea and Alessandro)
+- Alex (s243277): 3.36$, spent to keep the data in the bucket (Cloud storage)
+- Andrea (s243094): 0.35$, spent on training (but it will be at increase tomorrow because of the training we've done on last day of the course)
+- Alessandro (s243139): 0.00$
+- Ástríður (s242765): 0.00$
+
+The most expensive service was the cloud storage, but we kept the data there for around a week, and we trained the model for a total of 11 epochs (one of 1 epochs for testing and 10 for the full model), so it could have been different if we trained more on the cloud rather than locally. We did train locally most of the time during the development of the model because we had a RTX 5060 Mobile that enable us to iterate fairly quickly through the different architectures without having to use the cloud.
+
 
 ### Question 28
 
