@@ -510,8 +510,13 @@ We did write an API for our model and we used FastAPI to do that. We just create
 >
 > Answer:
 
-We first tried using the FastAPI endpoint locally and it worked correctly: we were able to upload an image and ti successfully returned a string composed of basic latex tokens. Most of the times the formula was also syntactically correct, but not the same as the ground truth.
-Then we ...
+We first tried using the FastAPI endpoint locally and it worked correctly: we were able to upload an image and it successfully returned a string composed of basic latex tokens. Most of the times the formula was also syntactically correct, but not the same as the ground truth.
+
+For the final deployment, we containerized the application by creating a Docker image that encapsulates the FastAPI service, our trained model weights, and all necessary dependencies. This image was pushed to the container registry and deployed in the cloud using Google Cloud Run.
+
+To invoke the deployed service, users can send a POST request to the cloud-hosted URL. For example, through our own and deployed simple frontend in https://frontend-1075248624324.europe-west1.run.app, or using curl:
+
+curl -X POST "https://api-1075248624324.europe-west1.run.app/predict/" -F "file=@image.png
 
 ### Question 25
 
