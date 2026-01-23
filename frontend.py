@@ -39,7 +39,7 @@ def main() -> None:
                     files = {"file": (uploaded_file.name, uploaded_file, uploaded_file.type)}
 
                     # Make API request
-                    response = requests.post(f"{API_URL}/predict/", files=files, timeout=30)
+                    response = requests.post(f"{API_URL}/predict/", files=files, timeout=120)
 
                     if response.status_code == 200:
                         result = response.json()

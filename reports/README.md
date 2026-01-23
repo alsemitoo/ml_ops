@@ -226,7 +226,7 @@ These were even more important principles as the project increased in size. When
 >
 > Answer:
 
-In total we have implemented 55 tests (53 passed, 2 xfailed), with 83% coverage. We used the coverage report to find lines and functions that had not been tested. We tested not only the "happy paths", but also areas such as images, missing labels, invalid JSON to make sure our error handling actually caught them. By covering these edge cases, we were confident the core components work as expected before they even hit the main training loop.
+In total we have implemented 81 tests across unit tests, integration tests, data quality tests, and performance tests (74 passed, 5 deselected, 2 xfailed), with 85% coverage. We used the coverage report to find lines and functions that had not been tested. We tested not only the "happy paths", but also areas such as images, missing labels, invalid JSON to make sure our error handling actually caught them. By covering these edge cases, we were confident the core components work as expected before they even hit the main training loop.
 
 
 ### Question 8
@@ -242,7 +242,7 @@ In total we have implemented 55 tests (53 passed, 2 xfailed), with 83% coverage.
 >
 > Answer:
 
-The total code coverage of our code is 83%, which includes all our source code. We are not at 100% coverage because we chose not to include the main entry points and also we did not test on the main train function. However, coverage helped us identify untested error handling branches and edge cases, particularly failing if-statements that we then addressed, and what functions we could have missed.
+The total code coverage of our code is 85%, which includes all our source code. We are not at 100% coverage because we chose not to include the main entry points and also we did not test on the main train function. However, coverage helped us identify untested error handling branches and edge cases, particularly failing if-statements that we then addressed, and what functions we could have missed.
 
 Even with 100% coverage, we would not trust the code to be entirely error-free. Code coverage only measures whether lines are executed, not whether they are *correct*. There are two major limitations to code coverage: coverage cannot detect logical errors (e.g., an if condition checks the wrong variable), and coverage cannot check code execution for all possible input values. Finally, coverage proves that our tests have seen the code, but it does not guarantee that the code has seen every real-world scenario.
 
@@ -295,13 +295,13 @@ We used DVC to track our dataset file `data.zip`, ensuring that the exact versio
 
 We have set up Continuous Integration (CI) pipeline into five distinct GitHub Actions workflows files, providing a clean separation of concertns and speeding up debugging in the process. This automated test serves as a safety net for every pull request and push operation on our main branch.
 
-Our main test flow (`test.yaml`) supports integration and unit testing across a range of Ubuntu, Windows, and macOS operating systems and uses both Python 3.11 and 3.12. By testing across multiple PyTorch versions, we can prevent dependency conflicts before they reach production. To optimize runtime, we implemented GitHub Actions caching for our virtual environments and pip dependencies using GitHub Actions caching.
+Our main test flow (`test.yaml`) supports integration and unit testing across a range of Ubuntu, Windows, and macOS operating systems and uses both Python 3.11 and 3.12. We also test two PyTorch versions. To optimize runtime, we implemented GitHub Actions caching for our virtual environments and pip dependencies using GitHub Actions caching.
 
 The second workflow, we use a static analysis workflow defined in `linting.yaml`. This uses `ruff` tool for fast linting, along with `mypy` tool for type checking. This enforces architectural standards and type safety programmatically, rather than relying on manual code reviews.
 
-We also have a data validation workflow (`data_Validation.yaml') that is triggered by changes to our tracked files. It authenticates with GCP, fetches data from our remote stroage, and runs integrity checks. It prevents data drift or data corruption from affecting our training pipeline.
+We also have a data validation workflow (`data_Validation.yaml') that is triggered by changes to dvc-related files. It authenticates with GCP, fetches data from our remote stroage, and runs integrity checks. It prevents data drift or data corruption from affecting our training pipeline.
 
-Additionally, our infrastructure also inlcudes a Docker build workflow (`docker_build.yaml`) and ensures containerization is automated whenever our core environment changes, pushing images into our GitHub Container Registry. Latly, our local development hooks remain up-to-date through our use of a `pre-commit-update.yaml` workflow. This ensure a high-confidence feedback loop, making our code as portable and reliable as possible.
+Additionally, our infrastructure also inlcudes Docker build workflows (`cloudbuild_*.yaml`) and ensures containerization is automated whenever our core environment changes, pushing images into the cloud registry, while also deploying the API and Frontend once the images are built. Lastly, our local development hooks remain up-to-date through our use of a `pre-commit-update.yaml` workflow. This ensure a high-confidence feedback loop, making our code as portable and reliable as possible.
 
 Example of workflow: [https://github.com/alsemitoo/ml_ops/actions/workflows/linting.yaml](https://github.com/alsemitoo/ml_ops/actions/workflows/linting.yaml)
 
@@ -423,6 +423,7 @@ We used:
 - Artifact Registry: was used for storing our Docker images
 - Service Accounts: were used for authentication and authorization
 - Cloud Build: was used for building our Docker images (a process which has been automated in our GitHub Actions pipeline)
+- Cloud Run: was used for deploying the API and Frontend images (a process which has been automated in our Github Actions pipeline)
 
 ### Question 18
 
@@ -448,8 +449,8 @@ For the hardware configuration, we selected n1-standard-8 instances to ensure su
 >
 > Answer:
 
-![my_image](figures/gcp_bucket.png)
-![my_image](figures/gcp_bucket_2.png)
+![Bucket](figures/gcp_bucket.png)
+![Bucket 2](figures/gcp_bucket_2.png)
 
 ### Question 20
 
@@ -458,7 +459,7 @@ For the hardware configuration, we selected n1-standard-8 instances to ensure su
 >
 > Answer:
 
-![my_image](figures/artifact_registry.png)
+![Artifact Registry](figures/artifact_registry.png)
 
 ### Question 21
 
