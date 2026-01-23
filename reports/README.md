@@ -88,8 +88,8 @@ will check the repositories and the code to verify your answers.
 * [X] Create a data storage in GCP Bucket for your data and link this with your data version control setup (M21) (Alex)
 * [X] Create a trigger workflow for automatically building your docker images (M21) (Alex)
 * [ ] Get your model training in GCP using either the Engine or Vertex AI (M21) (Andrea and Alessandro)
-* [X] Create a FastAPI application that can do inference using your model (M22) (Alex)
-* [X] Deploy your model in GCP using either Functions or Run as the backend (M23)
+* [X] Create a FastAPI application that can do inference using your model (M22) (Alessandro)
+* [x] Deploy your model in GCP using either Functions or Run as the backend (M23) (Alex)
 * [X] Write API tests for your application and setup continues integration for these (M24) (Ástríður)
 * [X] Load test your application (M24) (Ástríður)
 * [ ] Create a more specialized ML-deployment API using either ONNX or BentoML, or both (M25)
@@ -100,7 +100,7 @@ will check the repositories and the code to verify your answers.
 * [X] Check how robust your model is towards data drifting (M27) (Alex)
 * [ ] Setup collection of input-output data from your deployed application (M27) (Ástríður)
 * [ ] Deploy to the cloud a drift detection API (M27) (Ástríður)
-* [ ] Instrument your API with a couple of system metrics (M28)
+* [x] Instrument your API with a couple of system metrics (M28) (Alessandro)
 * [ ] Setup cloud monitoring of your instrumented application (M28)
 * [ ] Create one or more alert systems in GCP to alert you if your app is not behaving correctly (M28)
 * [ ] If applicable, optimize the performance of your data loading using distributed data loading (M29)
@@ -378,7 +378,12 @@ Data is tracked using DVC through `data.dvc`, meaning the same data snapshot can
 >
 > Answer:
 
---- question 15 fill here --- (Andrea and Alessandro)
+We used Docker to make sure that changes to our codebase and models were reproducible by different machines with different operating systems. This also allows for creating multiple environments for training, inference and deployment.
+To run our docker images, run the following:
+- api.dockerfile: this is for the fastapi image
+- data.dockerfile: this is to download the images from the huggingface dataset
+- frontend.dockerfile: this one opens our Streamlit frontend application on the local port
+- train.dockerfile: this last one trains the model
 
 ### Question 16
 
@@ -638,4 +643,10 @@ We built a small Streamlit frontend that lets a user upload photo of a math equa
 > *We have used ChatGPT to help debug our code. Additionally, we used GitHub Copilot to help write some of our code.*
 > Answer:
 
---- question 31 fill here --- (Ástríður)
+Student s243277 mainly worked on the data pipeline and cloud infrastructure. They set up the Git repository, implemented data downloading in `data.py`, and configured DVC with GCP Bucket storage. They also led the CI/CD work by setting up GitHub Actions, pre-commit hooks, and automated Docker builds.
+
+Student s242765 focused on project structure, testing, and configuration. They initialized the cookiecutter template, set up Hydra configs, and added logging across the codebase. In addition, they wrote unit tests for data and model components (with help from Student An), implemented integration and load tests, built the Streamlit frontend, and set up data drift detection.
+
+Students An and Al were reposnible for the core ML work. They implemented the Im2LaTeX model in `model.py` and the training pipeline in `train.py`, and attempted to deploy training to GCP using..
+
+We used generative AI tools such as the DTU MLOps Copilot Agent, ChatGPT, and Gemini mainly for debugging, cloud/GPU issues, and boilerplate code. All team members contributed to reviews, documentation, and code.
