@@ -662,8 +662,8 @@ Finally, adapting to the sheer number of dependencies and integrations required 
 
 Student s243277 mainly worked on the data pipeline and cloud infrastructure. They set up the Git repository, implemented data downloading in `data.py`, and configured DVC with GCP Bucket storage. They also led the CI/CD work by setting up GitHub Actions, pre-commit hooks, and automated Docker builds.
 
-Student s242765 focused on project structure, testing, and configuration. They initialized the cookiecutter template, set up Hydra configs, and added logging across the codebase. In addition, they wrote unit tests for data and model components (with help from Student An), implemented integration and load tests, built the Streamlit frontend, and set up data drift detection.
+Student s242765 focused on project structure, testing, and configuration. They initialized the cookiecutter template, set up Hydra configs, and added logging across the codebase. In addition, they wrote unit tests for data and model components (with help from s243094), implemented integration and load tests, built the Streamlit frontend, and set up data drift detection.
 
-Students An and Al were responsible for the core ML work. They implemented the Im2LaTeX model in `model.py` and the training pipeline in `train.py`. They also created the FastAPI application for model inference, enabling the API endpoint that accepts images and returns LaTeX predictions. Additionally, they worked on deploying training to GCP using Vertex AI.
+Students s243094 and s243139 were responsible for the core ML work. They implemented the Im2LaTeX model in `model.py` and the training pipeline in `train.py`. They also created the FastAPI application for model inference, enabling the API endpoint that accepts images and returns LaTeX predictions. Additionally, they worked on deploying training to GCP using Vertex AI.
 
 We used generative AI tools such as the DTU MLOps Copilot Agent, ChatGPT, and Gemini mainly for debugging, cloud/GPU issues, and boilerplate code. All team members contributed to reviews, documentation, and code.
