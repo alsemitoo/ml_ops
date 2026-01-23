@@ -35,89 +35,33 @@ def prepare_data():
     """Pulls the zip file from DVC remote and extracts it."""
     logger.info("[Vertex AI] Starting Data Preparation via DVC...")
 
-    logger.info("    Initializing dummy git repo for DVC...")
+    # --- CHANGED: Tell DVC to disable Git tracking for this session ---
+    # This is safe: it only affects the running container, not your code.
+    logger.info("Configuring DVC to ignore Git (no_scm)...")
     try:
-        # We use check=False because if it's already a repo, it might return an error, which is fine.
-        subprocess.run(["git", "init"], check=False)
-    except Exception as e:
-        logger.warning(f"Git init failed (non-fatal): {e}")
+        subprocess.run(["dvc", "config", "core.no_scm", "true"], check=True)
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Failed to set DVC config. Error: {e}")
+        raise e
+    # ----------------------------------------------------------------
 
     # 1. Pull data using DVC
-    # We use --no-run-cache to just get the file without re-running the dvc stage
     logger.info("Pulling data.zip from DVC remote...")
     try:
         subprocess.run(["dvc", "pull", "data.zip", "--no-run-cache"], check=True)
     except subprocess.CalledProcessError as e:
-        logger.error(f"DVC Pull failed. Check Service Account permissions. Error: {e}")
-        # We raise the error because we cannot train without data
+        logger.error(f"DVC Pull failed. Error: {e}")
         raise e
 
     # 2. Unzip the file
     logger.info("Unzipping data.zip...")
     if os.path.exists("data.zip"):
-        # Extract to a folder named 'data' in the current directory
         with zipfile.ZipFile("data.zip", "r") as zip_ref:
-            zip_ref.extractall("data")
+            zip_ref.extractall("data")  # Extract to 'data/' folder
         logger.success("Data ready in 'data/' directory")
     else:
         logger.error("data.zip was not found after dvc pull!")
         raise FileNotFoundError("data.zip missing")
-
-
-def unzip_data(zip_path: Path, dest_dir: Path):
-    """
-    Safely unzips a file.
-    If the path is on GCS, downloads it using the storage client to avoid FUSE errors.
-    """
-    if not dest_dir.exists():
-        dest_dir.mkdir(parents=True, exist_ok=True)
-
-    # Define a temporary local path
-    temp_zip = Path("/app/temp_data.zip")
-
-    # Check if the path is a GCS mount path (starts with /gcs/)
-    # Path parts example: ('/', 'gcs', 'bucket_name', 'folder', 'file.zip')
-    if "/gcs/" in str(zip_path):
-        logger.info(f"Detected GCS path: {zip_path}. Switching to Native Storage Client for stability.")
-
-        try:
-            # Parse bucket and blob name from the path
-            parts = zip_path.parts
-            # Index 0='/', 1='gcs', 2='bucket_name', 3+='blob_path'
-            bucket_name = parts[2]
-            blob_name = "/".join(parts[3:])
-
-            # Initialize client (picks up authentication automatically)
-            storage_client = storage.Client()
-            bucket = storage_client.bucket(bucket_name)
-            blob = bucket.blob(blob_name)
-
-            logger.info(f"Downloading blob '{blob_name}' from bucket '{bucket_name}' to {temp_zip}...")
-            blob.download_to_filename(str(temp_zip))
-            logger.success("Download complete.")
-
-        except Exception as e:
-            logger.error(f"Failed to download using Storage Client: {e}")
-            raise e
-
-    else:
-        # Fallback for local files (e.g., on your laptop)
-        logger.info(f"Copying local file {zip_path} to {temp_zip}...")
-        try:
-            shutil.copyfile(zip_path, temp_zip)
-        except Exception as e:
-            logger.error(f"Failed to copy local file: {e}")
-            raise e
-
-    # Now unzip the stable local file
-    logger.info(f"Unzipping {temp_zip} to {dest_dir}...")
-    try:
-        with zipfile.ZipFile(temp_zip, "r") as zip_ref:
-            zip_ref.extractall(dest_dir)
-        logger.success("Unzipping complete.")
-    finally:
-        if temp_zip.exists():
-            temp_zip.unlink()
 
 
 def collate_fn(batch: list[tuple[torch.Tensor, torch.Tensor]]) -> tuple[torch.Tensor, torch.Tensor]:
@@ -352,9 +296,16 @@ def train(cfg: DictConfig):
 
     # 2. Point data_path to the local folder where we just extracted the data
     # (prepare_data extracts everything into a folder named "data")
-    data_path = Path("data")
+    data_path = Path("data/data/raw/default_train")
 
-    logger.info(f"Training using local data at: {data_path}")
+    logger.info(f"Training using data at: {data_path}")
+
+    # Check if labels.json exists
+    if not (data_path / "labels.json").exists():
+        logger.error(f"labels.json not found at {data_path}")
+        # Print what IS there to help debug if it fails again
+        logger.error(f"Files found in data/: {[str(p) for p in Path('data').rglob('*')]}")
+        raise FileNotFoundError("Check the zip file structure!")
 
     # Build tokenizer from labels
     logger.info("Building tokenizer from labels...")
