@@ -367,9 +367,13 @@ Data is tracked using DVC through `data.dvc`, meaning the same data snapshot can
 >
 > Answer:
 
-Unfortunately we ended up not using proper services for tracking experiments like Weights&Biases for lack of time. Nonetheless, we set up hydra config files and docker files to ensure code and data reproducibility, hoping to make the possible process of tracking further experiments straightforward if time allowed.
+Unfortunately, we did not use experiment tracking services such as Weights & Biases during our project due to time constraints. Therefore, we cannot provide screenshots of tracked experiments, loss curves, or hyperparameter sweeps. While we recognize that such tools would have significantly enhanced our ability to compare model iterations and visualize training progress, we focused our limited time on ensuring code reproducibility through other means.
 
-Even if it was only done locally and without the use of professional softwares like W&B, the most important experiment we performed was applying 2 slightly different architectures for the model, and this process resulted in improving the model's performance by implementing a 2d-positional-encoder and modifying the ResNet parameters (decreasing the stride from 2 to 1).
+Despite the absence of formal experiment tracking, we still maintained reproducibility by setting up Hydra configuration files and Docker containers. These tools ensure that anyone can recreate our training environment and rerun experiments with identical parameters. This groundwork would make integrating W&B or similar services straightforward in future iterations.
+
+The main experimental work we conducted locally involved comparing two model architectures. We tested variations by implementing a 2D positional encoder and modifying the ResNet backbone parameters (specifically reducing the stride from 2 to 1). These changes improved model performance on our validation set. While we tracked these results manually through local logging and saved model checkpoints, having automated experiment tracking would have made comparing these architectures more systematic and easier to communicate to the team.
+
+All in all, setting up experiment tracking early would have been valuable for documenting our model development process more thoroughly.
 
 ### Question 15
 
