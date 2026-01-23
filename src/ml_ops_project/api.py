@@ -1,4 +1,5 @@
 import io
+import json
 import os
 from contextlib import asynccontextmanager
 from datetime import datetime
@@ -7,14 +8,15 @@ from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
+import numpy as np
 import pandas as pd
 import torch
 from fastapi import BackgroundTasks, FastAPI, File, HTTPException, UploadFile
 from fastapi.responses import JSONResponse
+from google.cloud import storage
 from PIL import Image
 from torchvision import transforms
 
-from ml_ops_project.data_drift import image_features
 from ml_ops_project.model import Im2LatexModel
 from ml_ops_project.preprocess import FormulaResizePad
 from ml_ops_project.tokenizer import LaTeXTokenizer
@@ -73,6 +75,8 @@ def add_to_database(temp_img_path: Path, prediction: str) -> None:
     """Extracts features and appends them to the CSV log file."""
     try:
         # Extract features using your data_drift.py logic
+        from ml_ops_project.data_drift import image_features
+
         features: dict[str, float | str] = {**image_features(temp_img_path)}
 
         # Add metadata and prediction
@@ -86,6 +90,59 @@ def add_to_database(temp_img_path: Path, prediction: str) -> None:
         # Clean up the temporary file
         if temp_img_path.exists():
             os.remove(temp_img_path)
+
+
+def extract_image_features(image: Image.Image) -> dict[str, float]:
+    """Compute simple image features directly from a PIL image (no temp files).
+
+    Returns brightness, contrast, sharpness, width, height, aspect_ratio.
+    """
+    gray = image.convert("L")
+    arr = np.asarray(gray, dtype=np.float32)
+    brightness = float(arr.mean())
+    contrast = float(arr.std())
+    gy, gx = np.gradient(arr)
+    sharpness = float(np.abs(gx).mean() + np.abs(gy).mean())
+    width, height = gray.size
+    aspect_ratio = float(width / height) if height else 0.0
+    return {
+        "brightness": brightness,
+        "contrast": contrast,
+        "sharpness": sharpness,
+        "width": float(width),
+        "height": float(height),
+        "aspect_ratio": aspect_ratio,
+    }
+
+
+def save_prediction_to_gcp_record(features: dict[str, float], prediction: str) -> None:
+    """Save a JSON record (features + prediction) to a GCS bucket."""
+    record = {
+        **features,
+        "prediction": prediction,
+        "timestamp": datetime.now().isoformat(),
+    }
+    client = storage.Client()
+    bucket_name = os.getenv("GCS_LOGGING_BUCKET", "ml_ops_data_bucket_46")
+    bucket = client.bucket(bucket_name)
+    date_prefix = datetime.now().strftime("%Y-%m-%d")
+    blob = bucket.blob(f"api_logs/{date_prefix}/prediction_{uuid4().hex}.json")
+    blob.upload_from_string(json.dumps(record), content_type="application/json")
+
+
+def save_prediction_locally_record(features: dict[str, float], prediction: str) -> None:
+    """Save a JSONL record locally (no CSV)."""
+    record = {
+        **features,
+        "prediction": prediction,
+        "timestamp": datetime.now().isoformat(),
+    }
+    out_dir = Path("logs/api_logs")
+    out_dir.mkdir(parents=True, exist_ok=True)
+    date_prefix = datetime.now().strftime("%Y-%m-%d")
+    out_file = out_dir / f"predictions_{date_prefix}.jsonl"
+    with open(out_file, "a", encoding="utf-8") as f:
+        f.write(json.dumps(record) + "\n")
 
 
 @asynccontextmanager
@@ -230,13 +287,13 @@ async def predict(
             detail="Failed to process image",
         )
 
-    # Persist image to a temp file and log features asynchronously
+    # Extract features and log asynchronously (GCS JSON or local JSONL, no CSV)
     try:
-        logs_dir = LOG_FILE.parent
-        logs_dir.mkdir(parents=True, exist_ok=True)
-        temp_img_path = logs_dir / f"tmp_{uuid4().hex}.png"
-        image.save(temp_img_path)
-        background_tasks.add_task(add_to_database, temp_img_path, prediction)
+        features = extract_image_features(image)
+        if os.getenv("GCS_LOGGING_BUCKET"):
+            background_tasks.add_task(save_prediction_to_gcp_record, features, prediction)
+        else:
+            background_tasks.add_task(save_prediction_locally_record, features, prediction)
     except Exception:
         # Do not fail the prediction if logging fails
         pass
