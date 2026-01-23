@@ -18,4 +18,4 @@ RUN uv sync --frozen
 # Cloud Run automatically sets PORT environment variable at runtime
 EXPOSE 8080
 
-ENTRYPOINT ["uv", "run", "uvicorn", "src.ml_ops_project.main:app", "--host", "0.0.0.0", "--port", "8080"]
+ENTRYPOINT ["uv", "run", "uvicorn", "src.ml_ops_project.api:app", "--host", "0.0.0.0", "--port", "8080"]
