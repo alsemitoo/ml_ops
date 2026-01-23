@@ -8,8 +8,8 @@ import torch
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.responses import JSONResponse
 from PIL import Image
-from torchvision import transforms
 from prometheus_client import Counter, Histogram, make_asgi_app
+from torchvision import transforms
 
 from ml_ops_project.model import Im2LatexModel
 from ml_ops_project.preprocess import FormulaResizePad
@@ -151,7 +151,7 @@ def root() -> dict[str, Any]:
 @app.post("/predict/", response_model=None)
 async def predict(file: UploadFile = File(...)) -> dict[str, Any] | JSONResponse:
     """Inference endpoint that takes an image and returns LaTeX prediction."""
-    
+
     PREDICTION_COUNTER.inc()
 
     contents = await file.read()
