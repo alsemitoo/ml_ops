@@ -2,7 +2,6 @@
 
 import cProfile
 import os  # Added for cpu_count
-import pstats
 from pathlib import Path
 
 import numpy as np
@@ -21,6 +20,45 @@ from ml_ops_project.tokenizer import LaTeXTokenizer
 from ml_ops_project.visualize import plot_training_statistics
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
+
+import subprocess
+import zipfile
+from pathlib import Path
+
+from loguru import logger
+
+
+def prepare_data():
+    """Pulls the zip file from DVC remote and extracts it."""
+    logger.info("[Vertex AI] Starting Data Preparation via DVC...")
+
+    # --- CHANGED: Tell DVC to disable Git tracking for this session ---
+    # This is safe: it only affects the running container, not your code.
+    logger.info("Configuring DVC to ignore Git (no_scm)...")
+    try:
+        subprocess.run(["dvc", "config", "core.no_scm", "true"], check=True)
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Failed to set DVC config. Error: {e}")
+        raise e
+    # ----------------------------------------------------------------
+
+    # 1. Pull data using DVC
+    logger.info("Pulling data.zip from DVC remote...")
+    try:
+        subprocess.run(["dvc", "pull", "data.zip", "--no-run-cache"], check=True)
+    except subprocess.CalledProcessError as e:
+        logger.error(f"DVC Pull failed. Error: {e}")
+        raise e
+
+    # 2. Unzip the file
+    logger.info("Unzipping data.zip...")
+    if os.path.exists("data.zip"):
+        with zipfile.ZipFile("data.zip", "r") as zip_ref:
+            zip_ref.extractall("data")  # Extract to 'data/' folder
+        logger.success("Data ready in 'data/' directory")
+    else:
+        logger.error("data.zip was not found after dvc pull!")
+        raise FileNotFoundError("data.zip missing")
 
 
 def collate_fn(batch: list[tuple[torch.Tensor, torch.Tensor]]) -> tuple[torch.Tensor, torch.Tensor]:
@@ -233,6 +271,10 @@ def train(cfg: DictConfig):
     Args:
         cfg: Hydra configuration object containing training, model, and data parameters
     """
+
+    profiler = cProfile.Profile()
+    profiler.enable()
+
     # Configure logger
     Path("logs").mkdir(exist_ok=True)
     logger.add(
@@ -246,14 +288,21 @@ def train(cfg: DictConfig):
     # Using 4 is a safe bet for most laptops, or use os.cpu_count()
     num_workers = 4
 
-    logger.info(
-        f"Starting training with epochs={train_cfg.epochs}, batch_size={train_cfg.batch_size}, data_path={train_cfg.data_path}"
-    )
+    # 1. Run the DVC Pull & Unzip logic
+    prepare_data()
 
-    profiler = cProfile.Profile()
-    profiler.enable()
+    # 2. Point data_path to the local folder where we just extracted the data
+    # (prepare_data extracts everything into a folder named "data")
+    data_path = Path("data/data/raw/default_train")
 
-    data_path = Path(train_cfg.data_path)
+    logger.info(f"Training using data at: {data_path}")
+
+    # Check if labels.json exists
+    if not (data_path / "labels.json").exists():
+        logger.error(f"labels.json not found at {data_path}")
+        # Print what IS there to help debug if it fails again
+        logger.error(f"Files found in data/: {[str(p) for p in Path('data').rglob('*')]}")
+        raise FileNotFoundError("Check the zip file structure!")
 
     # Build tokenizer from labels
     logger.info("Building tokenizer from labels...")
@@ -344,13 +393,15 @@ def train(cfg: DictConfig):
     #     stats.print_stats(50)
 
     # Save model and tokenizer
-    Path("models").mkdir(exist_ok=True)
-    logger.info("Saving model and tokenizer...")
-    torch.save(model.state_dict(), "models/model.pth")
-    torch.save(tokenizer.vocab, "models/vocab.pt")
-    logger.success("Model and vocabulary saved to models/")
+    save_dir = Path(cfg.training.get("save_dir", "models"))
+    save_dir.mkdir(parents=True, exist_ok=True)
 
-    plot_training_statistics(statistics, Path("logs/training_statistics.png"))
+    logger.info(f"Saving model and tokenizer to {save_dir}...")
+    torch.save(model.state_dict(), save_dir / "model.pth")
+    torch.save(tokenizer.vocab, save_dir / "vocab.pt")
+    logger.success(f"Model and vocabulary saved to {save_dir}")
+
+    plot_training_statistics(statistics, save_dir / "training_statistics.png")
 
 
 if __name__ == "__main__":
