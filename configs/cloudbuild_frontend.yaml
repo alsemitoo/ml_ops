@@ -1,0 +1,35 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  id: 'Build frontend container image'
+  args: [
+    'build',
+    '.',
+    '-t',
+    'europe-west1-docker.pkg.dev/clean-sylph-484508-h9/ml-ops-artifact-registry/frontend',
+    '-f',
+    'dockerfiles/frontend.dockerfile'
+  ]
+- name: 'gcr.io/cloud-builders/docker'
+  id: 'Push frontend container image'
+  args: [
+    'push',
+    'europe-west1-docker.pkg.dev/clean-sylph-484508-h9/ml-ops-artifact-registry/frontend'
+  ]
+- name: 'gcr.io/cloud-builders/gcloud'
+  id: 'Deploy to Cloud Run'
+  args: [
+    'run',
+    'deploy',
+    'frontend',
+    '--image',
+    'europe-west1-docker.pkg.dev/clean-sylph-484508-h9/ml-ops-artifact-registry/frontend',
+    '--region',
+    'europe-west1',
+    '--platform',
+    'managed',
+    '--allow-unauthenticated',
+    '--set-env-vars',
+    'API_URL=https://api-1075248624324.europe-west1.run.app'
+  ]
+options:
+  logging: CLOUD_LOGGING_ONLY

@@ -54,4 +54,10 @@ jobs:
       uses: google-github-actions/setup-gcloud@v2
 
     - name: Submit build
-      run: gcloud builds submit . --config configs/cloudbuild_containers.yaml
+      run: gcloud builds submit . --config configs/cloudbuild_api.yaml
+
+    - name: Submit build
+      run: gcloud builds submit . --config configs/cloudbuild_frontend.yaml
+
+    - name: Submit build
+      run: gcloud builds submit . --config configs/cloudbuild_train.yaml

@@ -1,0 +1,19 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  id: 'Build train container image'
+  args: [
+    'build',
+    '.',
+    '-t',
+    'europe-west1-docker.pkg.dev/clean-sylph-484508-h9/ml-ops-artifact-registry/train-v2',
+    '-f',
+    'dockerfiles/train.dockerfile'
+  ]
+- name: 'gcr.io/cloud-builders/docker'
+  id: 'Push train container image'
+  args: [
+    'push',
+    'europe-west1-docker.pkg.dev/clean-sylph-484508-h9/ml-ops-artifact-registry/train-v2'
+  ]
+options:
+  logging: CLOUD_LOGGING_ONLY
