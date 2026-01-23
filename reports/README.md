@@ -276,7 +276,7 @@ Before merging a PR to the main branch, it has to undergo review by at least on 
 >
 > Answer:
 
---- question 10 fill here ---
+--- question 10 fill here --- (Alex)
 
 ### Question 11
 
@@ -363,7 +363,7 @@ Data is tracked using DVC through `data.dvc`, meaning the same data snapshot can
 >
 > Answer:
 
---- question 14 fill here ---
+--- question 14 fill here --- (Andrea and Alessandro)
 
 ### Question 15
 
@@ -378,7 +378,7 @@ Data is tracked using DVC through `data.dvc`, meaning the same data snapshot can
 >
 > Answer:
 
---- question 15 fill here ---
+--- question 15 fill here --- (Andrea and Alessandro)
 
 ### Question 16
 
@@ -443,7 +443,7 @@ For the hardware configuration, we selected n1-standard-8 instances to ensure su
 >
 > Answer:
 
---- question 19 fill here ---
+--- question 19 fill here --- (Andrea and Alessandro)
 
 ### Question 20
 
@@ -452,7 +452,7 @@ For the hardware configuration, we selected n1-standard-8 instances to ensure su
 >
 > Answer:
 
---- question 20 fill here ---
+--- question 20 fill here --- (Andrea and Alessandro)
 
 ### Question 21
 
@@ -461,7 +461,7 @@ For the hardware configuration, we selected n1-standard-8 instances to ensure su
 >
 > Answer:
 
---- question 21 fill here ---
+--- question 21 fill here --- (Andrea and Alessandro)
 
 ### Question 22
 
@@ -476,7 +476,7 @@ For the hardware configuration, we selected n1-standard-8 instances to ensure su
 >
 > Answer:
 
---- question 22 fill here ---
+--- question 22 fill here --- (Andrea and Alessandro)
 
 ## Deployment
 
@@ -493,7 +493,6 @@ For the hardware configuration, we selected n1-standard-8 instances to ensure su
 >
 > Answer:
 
---- question 23 fill here ---
 We did write an API for our model and we used FastAPI to do that. We just created a file in the root of our project with an endpoint for inference called "predict". This takes an image, resizes it to the wanted size for the model to able to process it, and then feeds it to the model deployed on the google cloud. It then uses a beam search to return the sequences of ids in our vocaboulary, which is a collection of latex tokens extracted from the dataset. In this way, we're able to reconstruct a hopefully syntactically correct formula.
 
 ### Question 24
@@ -547,7 +546,7 @@ All three types of tests were integrated into our CI/CD pipline to ensure contin
 >
 > Answer:
 
---- question 26 fill here ---
+--- question 26 fill here --- (Alex)
 
 ## Overall discussion of project
 
@@ -566,7 +565,7 @@ All three types of tests were integrated into our CI/CD pipline to ensure contin
 >
 > Answer:
 
---- question 27 fill here ---
+--- question 27 fill here --- (Andrea and Alessandro)
 
 ### Question 28
 
@@ -600,7 +599,7 @@ We built a small Streamlit frontend that lets a user upload photo of a math equa
 >
 > Answer:
 
---- question 29 fill here ---
+--- question 29 fill here --- (Andrea and Alessandro)
 
 ### Question 30
 
@@ -614,7 +613,7 @@ We built a small Streamlit frontend that lets a user upload photo of a math equa
 >
 > Answer:
 
---- question 30 fill here ---
+--- question 30 fill here --- (Andrea and Alessandro)
 
 
 ### Question 31
@@ -632,3 +631,5 @@ We built a small Streamlit frontend that lets a user upload photo of a math equa
 > *All members contributed to code by...*
 > *We have used ChatGPT to help debug our code. Additionally, we used GitHub Copilot to help write some of our code.*
 > Answer:
+
+--- question 31 fill here --- (Ástríður)
