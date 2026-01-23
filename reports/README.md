@@ -89,7 +89,7 @@ will check the repositories and the code to verify your answers.
 * [X] Create a trigger workflow for automatically building your docker images (M21) (Alex)
 * [ ] Get your model training in GCP using either the Engine or Vertex AI (M21) (Andrea and Alessandro)
 * [X] Create a FastAPI application that can do inference using your model (M22) (Alex)
-* [ ] Deploy your model in GCP using either Functions or Run as the backend (M23)
+* [X] Deploy your model in GCP using either Functions or Run as the backend (M23)
 * [X] Write API tests for your application and setup continues integration for these (M24) (Ástríður)
 * [X] Load test your application (M24) (Ástríður)
 * [ ] Create a more specialized ML-deployment API using either ONNX or BentoML, or both (M25)
@@ -134,7 +134,7 @@ Group 46
 >
 > Answer:
 
-s242765, s243094, s243139, sXXXXXX
+s242765, s243094, s243139, s243277
 
 ### Question 3
 > **Did you end up using any open-source frameworks/packages not covered in the course during your project? If so**
@@ -443,7 +443,8 @@ For the hardware configuration, we selected n1-standard-8 instances to ensure su
 >
 > Answer:
 
---- question 19 fill here ---
+![my_image](figures/gcp_bucket.png)
+![my_image](figures/gcp_bucket_2.png)
 
 ### Question 20
 
@@ -452,7 +453,7 @@ For the hardware configuration, we selected n1-standard-8 instances to ensure su
 >
 > Answer:
 
---- question 20 fill here ---
+![my_image](figures/artifact_registry.png)
 
 ### Question 21
 
