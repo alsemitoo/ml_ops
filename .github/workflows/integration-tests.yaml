@@ -1,4 +1,4 @@
-name: Unit Tests
+name: Integration Tests
 
 on:
   push:
@@ -30,9 +30,8 @@ jobs:
           uv pip install torch==${{ matrix.torch-version }} torchvision --index-url https://download.pytorch.org/whl/cpu
           uv tree
 
-      - name: Run unit tests & coverage
+      - name: Run integration tests
         env:
           UV_HTTP_TIMEOUT: 1200
         run: |
-          uv run coverage run -m pytest tests/unittests/
-          uv run coverage report -m
+          uv run pytest tests/integrationtests/
