@@ -110,61 +110,117 @@ will check the repositories and the code to verify your answers.
 
 
 
-
 ## Project structure
 
-The directory structure of the project looks like this (only keeping folders/files we actively use):
+The directory structure of the project looks like this:
 ```txt
-├── AGENTS.md
-├── .github/                  # Github actions and dependabot
-│   ├── dependabot.yaml
+├── .github/                  # Github actions workflows
 │   └── workflows/
-│       └── docker_build.yaml
-│       └── linting.yaml
+│       ├── test.yaml
+│       ├── linting.yaml
+│       ├── docker_build.yaml
+│       ├── data_validation.yaml
 │       └── pre-commit-update.yaml
-│       └── tests.yaml
-├── configs/                  # Hydra configs (data, preprocess, train)
+├── configs/                  # Hydra configuration files
+│   ├── train.yaml
 │   ├── data.yaml
 │   ├── preprocess.yaml
-│   └── train.yaml
-├── data.dvc                  # DVC tracking for data
-├── dockerfiles/              # Dockerfiles for api/data/train
+│   ├── drift.yaml
+│   ├── cloudbuild_api.yaml
+│   ├── cloudbuild_frontend.yaml
+│   └── cloudbuild_train.yaml
+├── data/                     # Data directory
+│   ├── raw/
+│   │   └── default_train/
+│   └── drifted_current/
+├── dockerfiles/              # Docker container definitions
 │   ├── api.dockerfile
 │   ├── data.dockerfile
-│   └── train.dockerfile
-│   └── fronend.dockerfile
-├── models/                   # Trained weights and vocab
-├── reports/                  # Exam report, figures, profiling
+│   ├── train.dockerfile
+│   └── frontend.dockerfile
+├── docs/                     # Documentation
+│   ├── mkdocs.yaml
 │   ├── README.md
-│   ├── report.py
+│   └── source/
+│       └── index.md
+├── logs/                     # Training logs
+├── models/                   # Trained models
+│   ├── model.pth
+│   ├── model1.pth
+│   ├── model2.pth
+│   └── vocab.pt
+├── notebooks/                # Jupyter notebooks
+├── outputs/                  # Timestamped experiment outputs
+├── reports/                  # Reports and analysis
 │   ├── figures/
+│   ├── drift/
 │   └── profiling/
-├── src/
+├── src/                      # Source code
 │   └── ml_ops_project/
 │       ├── __init__.py
 │       ├── api.py
 │       ├── data.py
+│       ├── data_drift.py
 │       ├── evaluate.py
 │       ├── model.py
 │       ├── preprocess.py
 │       ├── tokenizer.py
 │       ├── train.py
-│       └── visualize.py
-├── tests/
-│   ├── __init__.py
-│   ├── test_api.py
-│   ├── test_data.py
-│   ├── test_model.py
-│   └── test_tokenizer.py
+│       ├── visualize.py
+│       └── py.typed
+├── tests/                    # Test suite
+│   ├── unittests/
+│   │   ├── test_api.py
+│   │   ├── test_data.py
+│   │   ├── test_model.py
+│   │   ├── test_preprocess.py
+│   │   ├── test_tokenizer.py
+│   │   ├── test_train.py
+│   │   └── test_visualize.py
+│   ├── integrationtests/
+│   │   └── test_apis.py
+│   ├── data_qualitytests/
+│   │   └── test_data_quality.py
+│   └── performancetests/
+│       └── locustfile.py
+├── AGENTS.md                 # Guidance for autonomous coding agents
+├── frontend.py               # Streamlit frontend application
 ├── LICENSE
-├── main.py
-├── frontend.py
-├── pyproject.toml            # Python project file (uv)
-├── README.md
-└── tasks.py
+├── pyproject.toml            # Python project configuration
+├── README.md                 # Project README
+├── tasks.py                  # Invoke tasks
+├── data.zip.dvc              # DVC data versioning
+└── .pre-commit-config.yaml   # Pre-commit hooks configuration
 ```
-
 
 Created using [mlops_template](https://github.com/SkafteNicki/mlops_template),
 a [cookiecutter template](https://github.com/cookiecutter/cookiecutter) for getting
 started with Machine Learning Operations (MLOps).
+
+## Exam Report
+
+The exam report is located in the `reports/` folder and uses a template provided by the course. The `reports/report.py` script provides utilities to validate and generate your report.
+
+### Running the Report Script
+
+First, ensure the required dependencies are installed:
+
+```bash
+uv add typer markdown pydantic loguru
+```
+
+Then you can use the report script in two ways:
+
+**Generate an HTML version of your report:**
+
+```bash
+uv run python reports/report.py html
+```
+
+This will create a `reports/report.html` file that you can view in a browser.
+
+**Check if your answers meet the constraints:**
+
+```bash
+uv run python reports/report.py check
+```
