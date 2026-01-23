@@ -8,6 +8,7 @@ import torch
 from fastapi import FastAPI, File, UploadFile
 from PIL import Image
 from torchvision import transforms
+from prometheus_client import Counter, Histogram, make_asgi_app
 
 from ml_ops_project.model import Im2LatexModel
 from ml_ops_project.preprocess import FormulaResizePad
@@ -18,6 +19,10 @@ MODEL_PATH = Path("models/model.pth")
 VOCAB_PATH = Path("models/vocab.pt")
 
 model_artifacts: dict[str, Any] = {}
+
+PREDICTION_COUNTER = Counter("prediction_requests_total", "Total number of prediction requests")
+ERROR_COUNTER = Counter("prediction_errors_total", "Total number of prediction errors")
+INFERENCE_LATENCY = Histogram("prediction_latency_seconds", "Time taken for prediction inference")
 
 
 @asynccontextmanager
@@ -74,6 +79,8 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+app.mount("/metrics", make_asgi_app())
+
 
 def beam_search_prediction(model, image, tokenizer, beam_width=3, max_len=150):
     device = next(model.parameters()).device
@@ -122,7 +129,11 @@ def beam_search_prediction(model, image, tokenizer, beam_width=3, max_len=150):
 @app.get("/")
 def root():
     """Health check."""
-    return {"message": "Im2Latex Inference API is running", "device": str(DEVICE), "status-code": HTTPStatus.OK}
+    return {
+        "message": "Im2Latex Inference API is running",
+        "device": str(DEVICE),
+        "status-code": HTTPStatus.OK,
+    }
 
 
 @app.post("/predict/")
@@ -131,11 +142,14 @@ async def predict(file: UploadFile = File(...)):
     Inference endpoint.
     Takes an image file, runs beam search, returns LaTeX string.
     """
+    PREDICTION_COUNTER.inc()
+
     # 1. READ IMAGE
     contents = await file.read()
     try:
         image = Image.open(io.BytesIO(contents)).convert("RGB")
     except Exception:
+        ERROR_COUNTER.inc()
         return {"error": "Invalid image file", "status-code": HTTPStatus.BAD_REQUEST}
 
     # 2. PREPROCESS
@@ -146,7 +160,8 @@ async def predict(file: UploadFile = File(...)):
     model = model_artifacts["model"]
     tokenizer = model_artifacts["tokenizer"]
 
-    with torch.no_grad():
-        prediction = beam_search_prediction(model, input_tensor, tokenizer)
+    with INFERENCE_LATENCY.time():
+        with torch.no_grad():
+            prediction = beam_search_prediction(model, input_tensor, tokenizer)
 
     return {"filename": file.filename, "prediction": prediction, "status-code": HTTPStatus.OK}
