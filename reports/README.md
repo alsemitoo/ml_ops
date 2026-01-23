@@ -518,7 +518,13 @@ Then we ...
 >
 > Answer:
 
---- question 25 fill here ---
+We tested our API at three levels: unit, integration, and load testing. For the unit tests, we used `pytest` to test individual API functions, mocking dependencies where needed. This let us check the core logic worked as expected. We also covered edge cases like empty files, invalid images, and missing model artifacts.
+
+For integration testing, we used FastAPI's `TestClient` together with `httpx` to test the API end-to-end. This ensured that both the `/` and the `/predict/` behaved correctly for valid and invalid requests, closely resembling real user interactions.
+
+For load testing, we used `Locust` to simluate multiple concurrent users. We gave different task weights, that was health checks (1), valid image predictions (3), and invalid requests (1). The API handled the load without crashes, showing stable response times and robust error handling.
+
+All three types of tests were integrated into our CI/CD pipline to ensure continous quality and reliability.
 
 ### Question 26
 
@@ -567,6 +573,7 @@ Then we ...
 > *implemented using ...*
 >
 > Answer:
+
 We built a small Streamlit frontend that lets a user upload photo of a math equation and returns the predicted LaTeX string for copy-paste into papers or notebooks. It keeps the interface minimal—upload widget, preview, and LaTeX output box, so we could demo the model without asking users to touch the CLI. To make sure it’s easy to run anywhere, we added separate Dockerfiles for the frontend and our data, which keeps everything reproducible whether we’re testing locally or deploying.
 
 
