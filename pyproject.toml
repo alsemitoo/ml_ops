@@ -39,6 +39,7 @@ dependencies = [
     "evidently>=0.7.20",
     "scikit-learn>=1.8.0",
     "pandas>=2.3.3",
+    "prometheus-client>=0.24.1",
 ]
 
 [dependency-groups]
