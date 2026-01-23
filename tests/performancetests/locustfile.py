@@ -33,8 +33,13 @@ class APIUser(HttpUser):
 
     @task(1)
     def test_predict_with_invalid_image(self):
-        """Test prediction with invalid data."""
-        self.client.post(
+        with self.client.post(
             "/predict/",
             files={"file": ("test.txt", b"invalid", "text/plain")},
-        )
+            catch_response=True,
+            name="POST /predict/ (invalid)",
+        ) as resp:
+            if resp.status_code == 400:
+                resp.success()
+            else:
+                resp.failure(f"Expected 400, got {resp.status_code}: {resp.text}")

@@ -69,4 +69,4 @@ jobs:
 
       - name: Run data quality tests
         run: |
-          uv run pytest tests/unittests/test_data_quality.py -v -s -m "full_dataset or not full_dataset"
+          uv run pytest tests/data_qualitytests/test_data_quality.py -v -s -m "full_dataset or not full_dataset"
