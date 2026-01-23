@@ -134,7 +134,7 @@ Group 46
 >
 > Answer:
 
-s242765, ...
+s242765, s243094, s243139, sXXXXXX
 
 ### Question 3
 > **Did you end up using any open-source frameworks/packages not covered in the course during your project? If so**
@@ -148,7 +148,8 @@ s242765, ...
 >
 > Answer:
 
---- question 3 fill here ---
+The main third-party package that has been used is PIL, which has been used to preprocess the images. The core functionality of PIL in our case has been the possibility to resize the dataset images to a fixed size of 128x640 pixels, which is the size for the ResNet50 model that we used.
+Another third-party package that has been used is Matplotlib, which has been used to create visualizations of the learning curves of the model during training.
 
 ## Coding environment
 
@@ -411,7 +412,12 @@ We did try to use `cProfile` to profile the code, but we were not able to run it
 >
 > Answer:
 
---- question 17 fill here ---
+We used:
+- Compute Engine & Vertex AI: were used for running our training routine
+- Bucket: was used for storing our data and models
+- Artifact Registry: was used for storing our Docker images
+- Service Accounts: were used for authentication and authorization
+- Cloud Build: was used for building our Docker images (a process which has been automated in our GitHub Actions pipeline)
 
 ### Question 18
 
@@ -426,7 +432,9 @@ We did try to use `cProfile` to profile the code, but we were not able to run it
 >
 > Answer:
 
---- question 18 fill here ---
+To execute our model training, we used GCP Compute Engine resources managed through Vertex AI. While we chose Vertex AI for its managed MLOps capabilities, the backbone of our training pipeline relied on ephemeral Compute Engine instances provisioned specifically for our training jobs.
+
+For the hardware configuration, we selected n1-standard-8 instances to ensure sufficient CPU and memory for data preprocessing. To accelerate the training process, we attached NVIDIA_TESLA_T4 GPUs. We deployed our code using a [custom Docker container / pre-built Google Cloud container] stored in the Artifact Registry, which allowed the Compute Engine instances to pull the exact environment dependencies required for our TensorFlow/PyTorch model immediately upon startup.
 
 ### Question 19
 
