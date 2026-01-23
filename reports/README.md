@@ -83,7 +83,7 @@ will check the repositories and the code to verify your answers.
 * [X] Add caching and multi-os/python/pytorch testing to your continuous integration (M17) (Alex)
 * [X] Add a linting step to your continuous integration (M17) (Alex)
 * [X] Add pre-commit hooks to your version control setup (M18) (Alex)
-* [ ] Add a continues workflow that triggers when data changes (M19)
+* [X] Add a continues workflow that triggers when data changes (M19)
 * [ ] Add a continues workflow that triggers when changes to the model registry is made (M19)
 * [X] Create a data storage in GCP Bucket for your data and link this with your data version control setup (M21) (Alex)
 * [X] Create a trigger workflow for automatically building your docker images (M21) (Alex)
@@ -98,7 +98,7 @@ will check the repositories and the code to verify your answers.
 ### Week 3
 
 * [X] Check how robust your model is towards data drifting (M27) (Alex)
-* [ ] Setup collection of input-output data from your deployed application (M27) (Ástríður)
+* [X] Setup collection of input-output data from your deployed application (M27) (Ástríður)
 * [ ] Deploy to the cloud a drift detection API (M27) (Ástríður)
 * [x] Instrument your API with a couple of system metrics (M28) (Alessandro)
 * [ ] Setup cloud monitoring of your instrumented application (M28)
@@ -597,7 +597,7 @@ We implemented a data drift detection mechanism using `evidently`. Our implement
 >
 > Answer:
 
-We built a small Streamlit frontend that lets a user upload photo of a math equation and returns the predicted LaTeX string for copy-paste into papers or notebooks. It keeps the interface minimal—upload widget, preview, and LaTeX output box, so we could demo the model without asking users to touch the CLI. To make sure it’s easy to run anywhere, we added separate Dockerfiles for the frontend and our data, which keeps everything reproducible whether we’re testing locally or deploying.
+We built a small Streamlit frontend that lets a user upload photo of a math equation and returns the predicted LaTeX string for copy-paste into papers or notebooks. It keeps the interface minimal, upload widget, preview, and LaTeX output box, so we could demo the model without asking users to touch the CLI. To make sure it’s easy to run anywhere, we added separate Dockerfiles for the frontend and our data, which keeps everything reproducible whether we’re testing locally or deploying.
 
 
 ### Question 29
@@ -664,6 +664,6 @@ Student s243277 mainly worked on the data pipeline and cloud infrastructure. The
 
 Student s242765 focused on project structure, testing, and configuration. They initialized the cookiecutter template, set up Hydra configs, and added logging across the codebase. In addition, they wrote unit tests for data and model components (with help from Student An), implemented integration and load tests, built the Streamlit frontend, and set up data drift detection.
 
-Students An and Al were reposnible for the core ML work. They implemented the Im2LaTeX model in `model.py` and the training pipeline in `train.py`, and attempted to deploy training to GCP using..
+Students An and Al were responsible for the core ML work. They implemented the Im2LaTeX model in `model.py` and the training pipeline in `train.py`. They also created the FastAPI application for model inference, enabling the API endpoint that accepts images and returns LaTeX predictions. Additionally, they worked on deploying training to GCP using Vertex AI.
 
 We used generative AI tools such as the DTU MLOps Copilot Agent, ChatGPT, and Gemini mainly for debugging, cloud/GPU issues, and boilerplate code. All team members contributed to reviews, documentation, and code.
