@@ -242,6 +242,7 @@ async def predict(
 
     Args:
         file: Image file to process.
+    """
 
     PREDICTION_COUNTER.inc()
 
