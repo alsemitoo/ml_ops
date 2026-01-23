@@ -12,6 +12,8 @@ COPY src ./src
 COPY configs ./configs
 COPY README.md ./README.md
 COPY LICENSE ./LICENSE
+COPY .dvc ./.dvc
+COPY .git ./.git
 
 # Install your project into the env (and verify lock)
 RUN uv sync --frozen

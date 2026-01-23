@@ -22,6 +22,103 @@ from ml_ops_project.visualize import plot_training_statistics
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
 
+import shutil
+import subprocess
+import zipfile
+from pathlib import Path
+
+from google.cloud import storage
+from loguru import logger
+
+
+def prepare_data():
+    """Pulls the zip file from DVC remote and extracts it."""
+    logger.info("[Vertex AI] Starting Data Preparation via DVC...")
+
+    logger.info("    Initializing dummy git repo for DVC...")
+    try:
+        # We use check=False because if it's already a repo, it might return an error, which is fine.
+        subprocess.run(["git", "init"], check=False)
+    except Exception as e:
+        logger.warning(f"Git init failed (non-fatal): {e}")
+
+    # 1. Pull data using DVC
+    # We use --no-run-cache to just get the file without re-running the dvc stage
+    logger.info("Pulling data.zip from DVC remote...")
+    try:
+        subprocess.run(["dvc", "pull", "data.zip", "--no-run-cache"], check=True)
+    except subprocess.CalledProcessError as e:
+        logger.error(f"DVC Pull failed. Check Service Account permissions. Error: {e}")
+        # We raise the error because we cannot train without data
+        raise e
+
+    # 2. Unzip the file
+    logger.info("Unzipping data.zip...")
+    if os.path.exists("data.zip"):
+        # Extract to a folder named 'data' in the current directory
+        with zipfile.ZipFile("data.zip", "r") as zip_ref:
+            zip_ref.extractall("data")
+        logger.success("Data ready in 'data/' directory")
+    else:
+        logger.error("data.zip was not found after dvc pull!")
+        raise FileNotFoundError("data.zip missing")
+
+
+def unzip_data(zip_path: Path, dest_dir: Path):
+    """
+    Safely unzips a file.
+    If the path is on GCS, downloads it using the storage client to avoid FUSE errors.
+    """
+    if not dest_dir.exists():
+        dest_dir.mkdir(parents=True, exist_ok=True)
+
+    # Define a temporary local path
+    temp_zip = Path("/app/temp_data.zip")
+
+    # Check if the path is a GCS mount path (starts with /gcs/)
+    # Path parts example: ('/', 'gcs', 'bucket_name', 'folder', 'file.zip')
+    if "/gcs/" in str(zip_path):
+        logger.info(f"Detected GCS path: {zip_path}. Switching to Native Storage Client for stability.")
+
+        try:
+            # Parse bucket and blob name from the path
+            parts = zip_path.parts
+            # Index 0='/', 1='gcs', 2='bucket_name', 3+='blob_path'
+            bucket_name = parts[2]
+            blob_name = "/".join(parts[3:])
+
+            # Initialize client (picks up authentication automatically)
+            storage_client = storage.Client()
+            bucket = storage_client.bucket(bucket_name)
+            blob = bucket.blob(blob_name)
+
+            logger.info(f"Downloading blob '{blob_name}' from bucket '{bucket_name}' to {temp_zip}...")
+            blob.download_to_filename(str(temp_zip))
+            logger.success("Download complete.")
+
+        except Exception as e:
+            logger.error(f"Failed to download using Storage Client: {e}")
+            raise e
+
+    else:
+        # Fallback for local files (e.g., on your laptop)
+        logger.info(f"Copying local file {zip_path} to {temp_zip}...")
+        try:
+            shutil.copyfile(zip_path, temp_zip)
+        except Exception as e:
+            logger.error(f"Failed to copy local file: {e}")
+            raise e
+
+    # Now unzip the stable local file
+    logger.info(f"Unzipping {temp_zip} to {dest_dir}...")
+    try:
+        with zipfile.ZipFile(temp_zip, "r") as zip_ref:
+            zip_ref.extractall(dest_dir)
+        logger.success("Unzipping complete.")
+    finally:
+        if temp_zip.exists():
+            temp_zip.unlink()
+
 
 def collate_fn(batch: list[tuple[torch.Tensor, torch.Tensor]]) -> tuple[torch.Tensor, torch.Tensor]:
     """Collate function to handle variable-length sequences with padding.
@@ -233,6 +330,10 @@ def train(cfg: DictConfig):
     Args:
         cfg: Hydra configuration object containing training, model, and data parameters
     """
+
+    profiler = cProfile.Profile()
+    profiler.enable()
+
     # Configure logger
     Path("logs").mkdir(exist_ok=True)
     logger.add(
@@ -246,14 +347,14 @@ def train(cfg: DictConfig):
     # Using 4 is a safe bet for most laptops, or use os.cpu_count()
     num_workers = 4
 
-    logger.info(
-        f"Starting training with epochs={train_cfg.epochs}, batch_size={train_cfg.batch_size}, data_path={train_cfg.data_path}"
-    )
+    # 1. Run the DVC Pull & Unzip logic
+    prepare_data()
 
-    profiler = cProfile.Profile()
-    profiler.enable()
+    # 2. Point data_path to the local folder where we just extracted the data
+    # (prepare_data extracts everything into a folder named "data")
+    data_path = Path("data")
 
-    data_path = Path(train_cfg.data_path)
+    logger.info(f"Training using local data at: {data_path}")
 
     # Build tokenizer from labels
     logger.info("Building tokenizer from labels...")
@@ -344,13 +445,15 @@ def train(cfg: DictConfig):
     #     stats.print_stats(50)
 
     # Save model and tokenizer
-    Path("models").mkdir(exist_ok=True)
-    logger.info("Saving model and tokenizer...")
-    torch.save(model.state_dict(), "models/model.pth")
-    torch.save(tokenizer.vocab, "models/vocab.pt")
-    logger.success("Model and vocabulary saved to models/")
+    save_dir = Path(cfg.training.get("save_dir", "models"))
+    save_dir.mkdir(parents=True, exist_ok=True)
 
-    plot_training_statistics(statistics, Path("logs/training_statistics.png"))
+    logger.info(f"Saving model and tokenizer to {save_dir}...")
+    torch.save(model.state_dict(), save_dir / "model.pth")
+    torch.save(tokenizer.vocab, save_dir / "vocab.pt")
+    logger.success(f"Model and vocabulary saved to {save_dir}")
+
+    plot_training_statistics(statistics, save_dir / "training_statistics.png")
 
 
 if __name__ == "__main__":
