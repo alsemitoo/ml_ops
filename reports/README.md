@@ -633,4 +633,10 @@ We built a small Streamlit frontend that lets a user upload photo of a math equa
 > *We have used ChatGPT to help debug our code. Additionally, we used GitHub Copilot to help write some of our code.*
 > Answer:
 
---- question 31 fill here --- (Ástríður)
+Student s243277 mainly worked on the data pipeline and cloud infrastructure. They set up the Git repository, implemented data downloading in `data.py`, and configured DVC with GCP Bucket storage. They also led the CI/CD work by setting up GitHub Actions, pre-commit hooks, and automated Docker builds.
+
+Student s242765 focused on project structure, testing, and configuration. They initialized the cookiecutter template, set up Hydra configs, and added logging across the codebase. In addition, they wrote unit tests for data and model components (with help from Student An), implemented integration and load tests, built the Streamlit frontend, and set up data drift detection.
+
+Students An and Al were reposnible for the core ML work. They implemented the Im2LaTeX model in `model.py` and the training pipeline in `train.py`, and attempted to deploy training to GCP using..
+
+We used generative AI tools such as the DTU MLOps Copilot Agent, ChatGPT, and Gemini mainly for debugging, cloud/GPU issues, and boilerplate code. All team members contributed to reviews, documentation, and code.
