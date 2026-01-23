@@ -638,6 +638,7 @@ Our architecture integrates local development with a GCP-based MLOps pipeline:
 > Answer:
 
 --- question 30 fill here --- (Andrea and Alessandro)
+We did struggle with working with GCP
 
 
 ### Question 31
