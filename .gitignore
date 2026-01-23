@@ -189,3 +189,5 @@ outputs/
 
 reports/drift/
 data/drifted_current/
+
+gcp-keys/
