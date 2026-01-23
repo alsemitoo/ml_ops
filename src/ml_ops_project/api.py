@@ -34,10 +34,44 @@ ERROR_COUNTER = Counter("prediction_errors_total", "Total number of prediction e
 INFERENCE_LATENCY = Histogram("prediction_latency_seconds", "Time taken for prediction inference")
 
 
+def _download_model_from_gcs() -> None:
+    """Download model artifacts from GCS bucket if configured."""
+    bucket_name = os.getenv("GCS_MODEL_BUCKET")
+    if not bucket_name:
+        return
+
+    try:
+        client = storage.Client()
+        bucket = client.bucket(bucket_name)
+
+        # Ensure models directory exists
+        MODEL_PATH.parent.mkdir(parents=True, exist_ok=True)
+
+        # Download model.pth (or model1.pth)
+        model_blob_name = os.getenv("GCS_MODEL_PATH", "models/model1.pth")
+        vocab_blob_name = os.getenv("GCS_VOCAB_PATH", "models/vocab.pt")
+
+        # Always download from GCS (overwrite local files)
+        model_blob = bucket.blob(model_blob_name)
+        model_blob.download_to_filename(str(MODEL_PATH))
+        print(f"Downloaded model from gs://{bucket_name}/{model_blob_name}")
+
+        vocab_blob = bucket.blob(vocab_blob_name)
+        vocab_blob.download_to_filename(str(VOCAB_PATH))
+        print(f"Downloaded vocab from gs://{bucket_name}/{vocab_blob_name}")
+    except Exception as e:
+        print(f"Warning: Failed to download model from GCS: {e}")
+        print("Falling back to local model files if available")
+        # Don't raise - fall back to local files if available
+
+
 def _init_model_artifacts_if_needed() -> None:
     """Initialize model artifacts (tokenizer, model, transform)."""
     if {"tokenizer", "model", "transform"} <= model_artifacts.keys():
         return
+
+    # Download model from GCS if configured
+    _download_model_from_gcs()
 
     if VOCAB_PATH.exists():
         vocab = torch.load(VOCAB_PATH, map_location=DEVICE)
