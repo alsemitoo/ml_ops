@@ -187,7 +187,9 @@ def save_prediction_locally_record(features: dict[str, float], prediction: str) 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> Any:
     """Manage app lifecycle: startup and shutdown."""
-    if not LOG_FILE.exists():
+    # Only create local CSV log file if not using GCS logging
+    if not os.getenv("GCS_LOGGING_BUCKET") and not LOG_FILE.exists():
+        LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
         headers = ["brightness", "contrast", "sharpness", "width", "height", "aspect_ratio", "prediction", "timestamp"]
         pd.DataFrame(columns=headers).to_csv(LOG_FILE, index=False)
     try:
