@@ -168,9 +168,9 @@ s242765, ...
 >
 > Answer:
 
-We managed all project dependencies using `uv`, which let us keep everything clean and declarative in a single place: `pyproject.toml`. This file defines both our main dependencies and our development tools, so there is no guessing about versions. Whenever we needed a new package, we added it using command, fx. `uv add <package>`. This automatically updated the configuration and made sure special cases were handled correctly. The exact resolved versions are stored in `uv.lock`, so everyone always installs the same dependency versions.
+We managed all project dependencies using `uv`, which let us keep everything clean and declarative in a single place: `pyproject.toml`. This file defines both our main dependencies and our development tools, so there is no guessing about versions. Whenever we needed a new package, we added it using the command `uv add <package>`. This automatically updated the configuration and made sure special cases were handled correctly. The exact resolved versions are stored in `uv.lock`, so everyone always installs the same dependency versions.
 
-When someone new joins the team, getting the exact same environment is simple. First they install Python 3.11+ and `uv`. Then they can clone the repository and run `uv sync`. This reads the project file and installs the exact versions everyone else is using. No manual `pip install` steps are needed. If they want the same code quality checks, they can also run `uv run pre-commit install` to enable the same Git hooks. After that, their setup matches the rest of the team perfectly.
+When someone new joins the team, getting the exact same environment is simple. First they install Python 3.11+ and `uv`. Then they can clone the repository and run `uv sync`. This reads the project file, creates a virtual environment if one does not exist yet, and installs the exact versions everyone else is using. No manual `pip install` steps are needed. If they want the same code quality checks, they can also run `uv run pre-commit install` to enable the same Git hooks. After that, their setup matches the rest of the team perfectly.
 
 
 ### Question 5
