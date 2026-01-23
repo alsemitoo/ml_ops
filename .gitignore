@@ -181,7 +181,6 @@ data/
 data.zip
 outputs/
 .ruff_cache/
-.dvc/
 
 
 .hydra/
