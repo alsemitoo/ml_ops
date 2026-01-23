@@ -1,0 +1,72 @@
+name: Data Validation
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '**/*.dvc'
+      - '.dvc/**'
+  push:
+    branches:
+      - main
+    paths:
+      - '**/*.dvc'
+      - '.dvc/**'
+
+jobs:
+  validate_data:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: |
+          uv sync --locked --dev
+          uv tree
+
+      - name: Auth with GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Verify DVC remote config
+        run: |
+          uv run dvc remote list
+          uv run dvc config cache.type copy
+
+      - name: Test GCP connectivity
+        run: |
+          gsutil ls gs://ml_ops_data_bucket_46/ || echo "GCP bucket access failed"
+          gsutil ls gs://ml_ops_data_bucket_46/files/ || echo "Files directory not accessible"
+
+      - name: Pull data from DVC
+        run: |
+          uv run dvc pull --no-run-cache -v --jobs 8
+          unzip -q data.zip -d .
+        timeout-minutes: 60
+
+      - name: Debug File Structure
+        run: |
+          echo "Listing directories in data/..."
+          ls -R data/ | head -n 20  # Show the first 20 lines of structure
+
+      - name: Run data quality tests
+        run: |
+          uv run pytest tests/test_data_quality.py -v -s -m "full_dataset or not full_dataset"
