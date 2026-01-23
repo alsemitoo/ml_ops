@@ -568,7 +568,7 @@ All three types of tests were integrated into our CI/CD pipline to ensure contin
 >
 > Answer:
 
-We implemented a data drift detection mechanism using `evidently`. Our implementation in `src/ml_ops_project/data_drift.py` extracts physical features from images—specifically brightness, contrast, sharpness, and aspect ratio—instead of raw pixel values. We compare these statistics between a reference dataset (training data) and the current inference data. The system generates a visual HTML report (`data_drift_report.html`) and a JSON summary, allowing us to identify if the input data characteristics are shifting over time, which could degrade model performance.
+We built a data drift detection workflow using `evidently`, focused on interpretable, image-level statistics rather than raw pixels. In `src/ml_ops_project/data_drift.py` we extract simple but meaningful statistics from each image: brightness, contrast, sharpness, and aspect ratio, then aggregate and compare their distributions between a fixed reference set (our training data) and the most recent inference batch. Evidently renders an interactive HTML report (`data_drift_report.html`) with clear visuals, plus a compact JSON summary suitable for automation. The report highlights shifts via statistical tests and thresholds, making it easy to spot gradual changes from lighting conditions, camera quality, or preprocessing differences that could erode accuracy. We run this job periodically and store artifacts under `outputs/`, which lets us track trends over time and trigger follow‑up actions (e.g., retraining or data curation) when drift crosses our threshold.
 
 ## Overall discussion of project
 
