@@ -384,12 +384,14 @@ Even if it was only done locally and without the use of professional softwares l
 >
 > Answer:
 
-We used Docker to make sure that changes to our codebase and models were reproducible by different machines with different operating systems. This also allows for creating multiple environments for training, inference and deployment.
-To run our docker images, run the following:
-- api.dockerfile: this is for the fastapi image
-- data.dockerfile: this is to download the images from the huggingface dataset
-- frontend.dockerfile: this one opens our Streamlit frontend application on the local port
-- train.dockerfile: this last one trains the model
+We used Docker extensively to ensure our codebase and models were reproducible across different machines and operating systems. This containerization strategy allowed us to create isolated, consistent environments for each stage of our ML pipeline: training, inference, and deployment.
+
+We developed four distinct Docker images. The `train.dockerfile` packages our training pipeline with all dependencies, allowing us to run training jobs consistently on GCP Vertex AI. The `api.dockerfile` containerizes our FastAPI service for model inference, which we deployed on Google Cloud Run. The `data.dockerfile` handles data downloading from HuggingFace datasets, while the `frontend.dockerfile` serves our Streamlit interface.
+
+To run these images locally, we use commands like `docker build -f dockerfiles/api.dockerfile -t api:latest .` followed by `docker run -p 8080:8080 api:latest`. For cloud deployment, we automated the build and push process through Google Cloud Build, which pulls the images from our Artifact Registry and deploys them automatically.
+
+One of our dockerfiles can be found here: [https://github.com/alsemitoo/ml_ops/blob/main/dockerfiles/api.dockerfile](https://github.com/alsemitoo/ml_ops/blob/main/dockerfiles/api.dockerfile)
+
 
 ### Question 16
 
