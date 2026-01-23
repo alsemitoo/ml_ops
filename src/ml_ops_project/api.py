@@ -1,12 +1,19 @@
 import io
+import json
+import os
 from contextlib import asynccontextmanager
+from datetime import datetime
 from http import HTTPStatus
 from pathlib import Path
 from typing import Any
+from uuid import uuid4
 
+import numpy as np
+import pandas as pd
 import torch
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import BackgroundTasks, FastAPI, File, HTTPException, UploadFile
 from fastapi.responses import JSONResponse
+from google.cloud import storage  # type: ignore
 from PIL import Image
 from prometheus_client import Counter, Histogram, make_asgi_app
 from torchvision import transforms
@@ -18,6 +25,7 @@ from ml_ops_project.tokenizer import LaTeXTokenizer
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 MODEL_PATH = Path("models/model1.pth")
 VOCAB_PATH = Path("models/vocab.pt")
+LOG_FILE = Path("logs/prediction_database.csv")
 
 model_artifacts: dict[str, Any] = {}
 
@@ -26,10 +34,44 @@ ERROR_COUNTER = Counter("prediction_errors_total", "Total number of prediction e
 INFERENCE_LATENCY = Histogram("prediction_latency_seconds", "Time taken for prediction inference")
 
 
+def _download_model_from_gcs() -> None:
+    """Download model artifacts from GCS bucket if configured."""
+    bucket_name = os.getenv("GCS_MODEL_BUCKET")
+    if not bucket_name:
+        return
+
+    try:
+        client = storage.Client()
+        bucket = client.bucket(bucket_name)
+
+        # Ensure models directory exists
+        MODEL_PATH.parent.mkdir(parents=True, exist_ok=True)
+
+        # Download model.pth (or model1.pth)
+        model_blob_name = os.getenv("GCS_MODEL_PATH", "models/model1.pth")
+        vocab_blob_name = os.getenv("GCS_VOCAB_PATH", "models/vocab.pt")
+
+        # Always download from GCS (overwrite local files)
+        model_blob = bucket.blob(model_blob_name)
+        model_blob.download_to_filename(str(MODEL_PATH))
+        print(f"Downloaded model from gs://{bucket_name}/{model_blob_name}")
+
+        vocab_blob = bucket.blob(vocab_blob_name)
+        vocab_blob.download_to_filename(str(VOCAB_PATH))
+        print(f"Downloaded vocab from gs://{bucket_name}/{vocab_blob_name}")
+    except Exception as e:
+        print(f"Warning: Failed to download model from GCS: {e}")
+        print("Falling back to local model files if available")
+        # Don't raise - fall back to local files if available
+
+
 def _init_model_artifacts_if_needed() -> None:
     """Initialize model artifacts (tokenizer, model, transform)."""
     if {"tokenizer", "model", "transform"} <= model_artifacts.keys():
         return
+
+    # Download model from GCS if configured
+    _download_model_from_gcs()
 
     if VOCAB_PATH.exists():
         vocab = torch.load(VOCAB_PATH, map_location=DEVICE)
@@ -68,9 +110,86 @@ def _init_model_artifacts_if_needed() -> None:
     model_artifacts["transform"] = transform
 
 
+def add_to_database(temp_img_path: Path, prediction: str) -> None:
+    """Extracts features and appends them to the CSV log file."""
+    try:
+        # Extract features using your data_drift.py logic
+        from ml_ops_project.data_drift import image_features
+
+        features: dict[str, float | str] = {**image_features(temp_img_path)}
+
+        # Add metadata and prediction
+        features["prediction"] = prediction
+        features["timestamp"] = datetime.now().isoformat()
+
+        # Append to CSV
+        df = pd.DataFrame([features])
+        df.to_csv(LOG_FILE, mode="a", header=not LOG_FILE.exists(), index=False)
+    finally:
+        # Clean up the temporary file
+        if temp_img_path.exists():
+            os.remove(temp_img_path)
+
+
+def extract_image_features(image: Image.Image) -> dict[str, float]:
+    """Compute simple image features directly from a PIL image (no temp files).
+
+    Returns brightness, contrast, sharpness, width, height, aspect_ratio.
+    """
+    gray = image.convert("L")
+    arr = np.asarray(gray, dtype=np.float32)
+    brightness = float(arr.mean())
+    contrast = float(arr.std())
+    gy, gx = np.gradient(arr)
+    sharpness = float(np.abs(gx).mean() + np.abs(gy).mean())
+    width, height = gray.size
+    aspect_ratio = float(width / height) if height else 0.0
+    return {
+        "brightness": brightness,
+        "contrast": contrast,
+        "sharpness": sharpness,
+        "width": float(width),
+        "height": float(height),
+        "aspect_ratio": aspect_ratio,
+    }
+
+
+def save_prediction_to_gcp_record(features: dict[str, float], prediction: str) -> None:
+    """Save a JSON record (features + prediction) to a GCS bucket."""
+    record = {
+        **features,
+        "prediction": prediction,
+        "timestamp": datetime.now().isoformat(),
+    }
+    client = storage.Client()
+    bucket_name = os.getenv("GCS_LOGGING_BUCKET", "ml_ops_data_bucket_46")
+    bucket = client.bucket(bucket_name)
+    date_prefix = datetime.now().strftime("%Y-%m-%d")
+    blob = bucket.blob(f"api_logs/{date_prefix}/prediction_{uuid4().hex}.json")
+    blob.upload_from_string(json.dumps(record), content_type="application/json")
+
+
+def save_prediction_locally_record(features: dict[str, float], prediction: str) -> None:
+    """Save a JSONL record locally (no CSV)."""
+    record = {
+        **features,
+        "prediction": prediction,
+        "timestamp": datetime.now().isoformat(),
+    }
+    out_dir = Path("logs/api_logs")
+    out_dir.mkdir(parents=True, exist_ok=True)
+    date_prefix = datetime.now().strftime("%Y-%m-%d")
+    out_file = out_dir / f"predictions_{date_prefix}.jsonl"
+    with open(out_file, "a", encoding="utf-8") as f:
+        f.write(json.dumps(record) + "\n")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> Any:
     """Manage app lifecycle: startup and shutdown."""
+    if not LOG_FILE.exists():
+        headers = ["brightness", "contrast", "sharpness", "width", "height", "aspect_ratio", "prediction", "timestamp"]
+        pd.DataFrame(columns=headers).to_csv(LOG_FILE, index=False)
     try:
         _init_model_artifacts_if_needed()
     except Exception:
@@ -149,8 +268,15 @@ def root() -> dict[str, Any]:
 
 
 @app.post("/predict/", response_model=None)
-async def predict(file: UploadFile = File(...)) -> dict[str, Any] | JSONResponse:
-    """Inference endpoint that takes an image and returns LaTeX prediction."""
+async def predict(
+    file: UploadFile = File(...),
+    background_tasks: BackgroundTasks = BackgroundTasks(),
+) -> dict[str, Any] | JSONResponse:
+    """Inference endpoint that takes an image and returns LaTeX prediction.
+
+    Args:
+        file: Image file to process.
+    """
 
     PREDICTION_COUNTER.inc()
 
@@ -188,6 +314,17 @@ async def predict(file: UploadFile = File(...)) -> dict[str, Any] | JSONResponse
             status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
             detail="Failed to process image",
         )
+
+    # Extract features and log asynchronously (GCS JSON or local JSONL, no CSV)
+    try:
+        features = extract_image_features(image)
+        if os.getenv("GCS_LOGGING_BUCKET"):
+            background_tasks.add_task(save_prediction_to_gcp_record, features, prediction)
+        else:
+            background_tasks.add_task(save_prediction_locally_record, features, prediction)
+    except Exception:
+        # Do not fail the prediction if logging fails
+        pass
 
     return {
         "filename": file.filename,

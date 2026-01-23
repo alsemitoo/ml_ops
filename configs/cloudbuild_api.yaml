@@ -28,6 +28,10 @@ steps:
     '--platform',
     'managed',
     '--allow-unauthenticated',
+    '--service-account',
+    'github-actions@clean-sylph-484508-h9.iam.gserviceaccount.com',
+    '--set-env-vars',
+    'GCS_LOGGING_BUCKET=ml_ops_data_bucket_46,GCS_MODEL_BUCKET=ml_ops_data_bucket_46,GCS_MODEL_PATH=experiments/run1/model/model.pth,GCS_VOCAB_PATH=experiments/run1/model/vocab.pt'
   ]
 options:
   logging: CLOUD_LOGGING_ONLY
