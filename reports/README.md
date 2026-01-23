@@ -637,8 +637,11 @@ Our architecture integrates local development with a GCP-based MLOps pipeline:
 >
 > Answer:
 
---- question 30 fill here --- (Andrea and Alessandro)
-We did struggle with working with GCP
+The most significant challenge we faced was the transition from a local development environment to a fully automated cloud infrastructure. While the code functioned correctly on our local machines, configuring the interaction between Google Cloud Platform and our Continuous Integration pipelines was difficult. We spent a significant portion of our development time resolving problems with GPU/CPU usage and data retrieval, which were complicated by our DVC encryption setup and were not immediately obvious from the logs.
+
+Additionally, managing dependencies proved to be a major bottleneck. We encountered repeated compatibility issues between PyTorch versions and the CUDA drivers available on the cloud instances. Debugging these issues was particularly time-consuming due to the long feedback loop inherent in MLOps. A single iteration required committing changes, waiting for Docker images to rebuild and push, and then provisioning the cloud resources, only to have the job fail minutes later.
+
+Finally, adapting to the sheer number of dependencies and integrations required us to change our approach to development. We needed to orchestrate a wide array of tools—from DVC and Hydra to Docker and various GCP services—rather than simply focusing on the model architecture. While working with many distinct components together was a valuable learning experience, it was also initially overwhelming.
 
 
 ### Question 31
