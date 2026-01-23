@@ -190,7 +190,7 @@ When someone new joins the team, getting the exact same environment is simple. F
 
 We set up our project based on cookiecutter template for MLOps at DTU and mostly stuck to their structure. We mainly filled in the config files in `configs/` using Hydra and set up the complete machine learning pipeline in the `src/ml_ops_project`. This includes modules for data loading, preprocessing, tokenization, model definition, training, evaluation, and a basic FastAPI API stub. We kept out tests in `tests/`, where there was one test for each module, for example, `test_data.py`.
 
-We added Docker support for all stages in `dockerfiles/` (api/data/train and a small frontend image), trained models are kept in `models/`, while data is versioned with DVC through `data.dvc` instead of a versioned `data/` folder. Our CI pipeline in `.github/workflows` is more advanced than the default, including linting, testing, pre-commit auto-updates, and Docker builds. We added `main.py` and `frontend.py` as entry points. In comparison to a basic template, we no longer make use of `notebooks/`, nor emphasize `docs/`, but rather use the exam report in `reports/`.
+We added Docker support for all stages in `dockerfiles/` (api/data/train and a small frontend image), trained models are kept in `models/`, while data is versioned with DVC through `data.zip.dvc` instead of a versioned `data/` folder. Our CI pipeline in `.github/workflows` is more advanced than the default, including linting, testing, pre-commit auto-updates, and Docker builds. We added `main.py` and `frontend.py` as entry points. In comparison to a basic template, we no longer make use of `notebooks/`, nor emphasize `docs/`, but rather use the exam report in `reports/`.
 
 ### Question 6
 
@@ -226,7 +226,7 @@ These were even more important principles as the project increased in size. When
 >
 > Answer:
 
-In total we have implemented 55 tests (53 passed, 2 xfailed), with 83% coverage. We used the coverage report to find lines and functions that had not been tested. We tested not only the "happy paths", but also areas such as images, missing labels, invalid JSON to make sure our error handling actually caught them. By covering these edge cases, we were confident the core components work as expected before they even hit the main training loop.
+In total we have implemented 81 tests across unit tests, integration tests, data quality tests, and performance tests (74 passed, 5 deselected, 2 xfailed), with 85% coverage. We used the coverage report to find lines and functions that had not been tested. We tested not only the "happy paths", but also areas such as images, missing labels, invalid JSON to make sure our error handling actually caught them. By covering these edge cases, we were confident the core components work as expected before they even hit the main training loop.
 
 
 ### Question 8
@@ -242,7 +242,7 @@ In total we have implemented 55 tests (53 passed, 2 xfailed), with 83% coverage.
 >
 > Answer:
 
-The total code coverage of our code is 83%, which includes all our source code. We are not at 100% coverage because we chose not to include the main entry points and also we did not test on the main train function. However, coverage helped us identify untested error handling branches and edge cases, particularly failing if-statements that we then addressed, and what functions we could have missed.
+The total code coverage of our code is 85%, which includes all our source code. We are not at 100% coverage because we chose not to include the main entry points and also we did not test on the main train function. However, coverage helped us identify untested error handling branches and edge cases, particularly failing if-statements that we then addressed, and what functions we could have missed.
 
 Even with 100% coverage, we would not trust the code to be entirely error-free. Code coverage only measures whether lines are executed, not whether they are *correct*. There are two major limitations to code coverage: coverage cannot detect logical errors (e.g., an if condition checks the wrong variable), and coverage cannot check code execution for all possible input values. Finally, coverage proves that our tests have seen the code, but it does not guarantee that the code has seen every real-world scenario.
 
@@ -276,7 +276,7 @@ Before merging a PR to the main branch, it has to undergo review by at least on 
 >
 > Answer:
 
---- question 10 fill here --- (Alex)
+We used DVC to track our dataset file `data.zip`, ensuring that the exact version of the data is linked to our code. By using `data.zip.dvc`, we track the MD5 hash of the dataset, while the actual file is stored in our remote storage (GCP Bucket). This allows us to share the large dataset among team members and CI pipelines without cluttering the git repository. Any team member can run `dvc pull` to retrieve the exact data version specified in the commit, guaranteeing reproducibility of our training experiments.
 
 ### Question 11
 
@@ -482,7 +482,7 @@ For the hardware configuration, we selected n1-standard-8 instances to ensure su
 >
 > Answer:
 
---- question 22 fill here --- (Andrea and Alessandro)
+We did manage to train our model in the cloud using Vertex AI. To do that, we created an image
 
 ## Deployment
 
@@ -557,7 +557,7 @@ All three types of tests were integrated into our CI/CD pipline to ensure contin
 >
 > Answer:
 
---- question 26 fill here --- (Alex)
+We implemented a data drift detection mechanism using `evidently`. Our implementation in `src/ml_ops_project/data_drift.py` extracts physical features from images—specifically brightness, contrast, sharpness, and aspect ratio—instead of raw pixel values. We compare these statistics between a reference dataset (training data) and the current inference data. The system generates a visual HTML report (`data_drift_report.html`) and a JSON summary, allowing us to identify if the input data characteristics are shifting over time, which could degrade model performance.
 
 ## Overall discussion of project
 
@@ -610,7 +610,15 @@ We built a small Streamlit frontend that lets a user upload photo of a math equa
 >
 > Answer:
 
---- question 29 fill here --- (Andrea and Alessandro)
+Our architecture integrates local development with a GCP-based MLOps pipeline:
+
+1.  **Local Development**: We use `uv` for dependency management and `dvc` for data versioning (tracking `data.zip`). Code changes are pushed to GitHub.
+2.  **CI/CD**: GitHub Actions triggers workflows for linting (`ruff`, `mypy`), unit/integration testing (`pytest`), and data validation.
+3.  **Container Build**: We define Docker images for `train`, `api`, and `frontend`. These are built using Google Cloud Build (configured in `cloudbuild_containers.yaml`) and stored in the GCP Artifact Registry.
+4.  **Training**: The training job runs on Vertex AI using the `train` image and data pulled from the GCP Bucket. Model artifacts are saved back to the bucket/registry.
+5.  **Inference**: The trained model is packaged into the `api` container (FastAPI).
+6.  **Frontend**: A Streamlit application (`frontend` container) provides a user interface, sending images to the API for LaTeX prediction.
+7.  **Monitoring**: We run drift detection jobs (using `evidently`) to monitor image statistics against the training baseline.
 
 ### Question 30
 
